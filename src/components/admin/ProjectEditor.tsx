@@ -4,6 +4,8 @@ import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { ArrowLeft, Eye, Plus, X } from "@/components/ui/Icons";
 import { slugify } from "@/lib/slug";
 import { createTech, deleteProject, saveProject } from "@/server/actions/projects";
+import { techAbbr, type ProjectImport } from "@/lib/project-import";
+import { AiImport } from "./AiImport";
 import { ImageManager, type EditorImage } from "./ImageManager";
 
 type Lang = "no" | "en";
@@ -101,6 +103,31 @@ export function ProjectEditor({ initial, allTechs }: { initial: EditorData; allT
     setTechOptions((o) => (o.some((x) => x.id === res.tech.id) ? o : [...o, res.tech]));
     if (!data.techs.some((x) => x.techId === res.tech.id)) change({ techs: [...data.techs, { techId: res.tech.id, whyNo: "", whyEn: "" }] });
     setNewTech({ name: "", abbr: "", roleNo: "", roleEn: "" });
+  }
+
+  /** Fills the form from the AI's JSON. Techs are matched by name; missing ones are created. */
+  async function applyImport(v: ProjectImport): Promise<string | null> {
+    let options = techOptions;
+    const techs: TechRow[] = [];
+    for (const t of v.techs) {
+      let tech = options.find((o) => o.name.toLowerCase() === t.name.toLowerCase());
+      if (!tech) {
+        const res = await createTech({ name: t.name, abbr: t.abbr || techAbbr(t.name), roleNo: t.roleNo, roleEn: t.roleEn });
+        if (!res.ok) return `${t.name}: ${res.error}`;
+        tech = res.tech;
+        options = [...options, tech];
+      }
+      if (!techs.some((r) => r.techId === tech.id)) techs.push({ techId: tech.id, whyNo: t.whyNo, whyEn: t.whyEn });
+    }
+    setTechOptions(options);
+    const patch: Partial<EditorData> = {
+      type: v.type, progress: v.progress, year: v.year, liveUrl: v.liveUrl, githubUrl: v.githubUrl,
+      translations: { no: v.no, en: v.en }, techs, lessons: v.lessons,
+    };
+    if (!slugTouched.current && v.no.title) patch.slug = slugify(v.no.title);
+    setHasGithub(Boolean(v.githubUrl));
+    change(patch);
+    return null;
   }
 
   const saveLabel = data.status === "DRAFT" ? "Lagre utkast" : "Lagre";
@@ -213,6 +240,7 @@ export function ProjectEditor({ initial, allTechs }: { initial: EditorData; allT
         </div>
 
         <aside className="flex min-w-0 flex-[1_1_320px] flex-col gap-6">
+          <AiImport techNames={techOptions.map((o) => o.name)} onImport={applyImport} />
           <section className={card}>
             <h2 className="m-0 mb-1 text-[17px] font-semibold">Publisering</h2>
             <p className="mt-0 mb-5 text-sm text-muted-2">Hvor prosjektet vises på siden.</p>

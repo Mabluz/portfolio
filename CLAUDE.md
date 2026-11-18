@@ -42,6 +42,7 @@ pnpm typecheck && pnpm lint && pnpm test
 - Dynamiske sider: `cacheComponents` og `partialPrefetching` er bevisst skrudd av.
 - **Datamodell** (`prisma/schema.prisma`): Project (BIG/SMALL, DRAFT/PUBLISHED/HIDDEN, fremdrift LIVE/IN_PROGRESS/ABANDONED/DISCONTINUED), ProjectTranslation, ProjectImage (første bilde er hovedbilde og alltid full bredde), Tech + ProjectTech (delt liste med begrunnelse per prosjekt), Lesson, SiteSettings (singleton id=1), AdminUser, Session.
 - **Forsideprosjekt**: `SiteSettings.currentProjectId`, valgt med radioknapper på admin-oversikten (`setHeroProject`). Vises bare hvis publisert, og skjules da fra listene under. Kortets tekster følger fremdriften (`heroTexts` i `i18n.ts`), og beskrivelsen er prosjektets tagline. `nowTextNo`/`nowTextEn` er utgått og ubrukt; fjern kolonnene i en senere deploy.
+- **Fyll ut med AI**: kortet i prosjekteditoren kopierer en prompt (`buildAiPrompt` i `src/lib/project-import.ts`) og leser JSON-svaret tilbake (`parseProjectImport`). Importen fyller bare skjemaet; ingenting lagres før «Lagre», men ukjente teknologier opprettes med en gang (matches på navn). Endres skjemaet for prosjekter, må formatet og prompten følge med.
 - Skrive migrasjoner med `pnpm db:migrate`; produksjon kjører `prisma migrate deploy` ved oppstart (se `docker-entrypoint.sh`). Migrasjoner må være bakoverkompatible med forrige versjon (expand/contract), fordi automatisk tilbakerulling i `deploy.sh` ikke reverserer dem. Gi nytt navn til eller fjern kolonner over to deployer.
 
 ## Deploy
@@ -52,7 +53,7 @@ Speiler `../zellstrikka`: GitHub Actions (`ci.yml`, `deploy.yml`) kopierer bygge
 
 ## Status og kjente hull
 
-- Verifisert: typecheck, lint, 61 tester, produksjonsbygg, Docker-image, innlogging, prosjektredigering og bildeopplasting.
+- Verifisert: typecheck, lint, 72 tester, produksjonsbygg, Docker-image, innlogging, prosjektredigering og bildeopplasting.
 - Ikke testet manuelt: dra-og-slipp-rekkefølge, opprette og slette prosjekt, "Om meg"-siden, CV-opplasting, mobilvisning i admin, GitHub Actions-workflowene.
 - Lokal dev-admin finnes i dev-databasen. Innloggingen står i `CLAUDE.local.md` (gitignored); opprett eller nullstill med `pnpm admin:create`.
 
