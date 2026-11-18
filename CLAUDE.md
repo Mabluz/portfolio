@@ -10,7 +10,7 @@ Next 16 avviker fra eldre versjoner (f.eks. `src/proxy.ts` erstatter middleware)
 
 Kilden er Claude-design-canvaset: https://claude.ai/artifact/5bS66QXmzRYyFNoGMZ9vvB (artboards: Main, Prosjekt, Admin, AdminRediger, Login, Farger, Fonter, MainMobil, ProsjektMobil). Mobilskissene er de samme sidene ved 390 px, ikke egne tegninger. Hent filer med Artifact-verktøyet (`list` med `scope: "files"`, deretter `read` med `paths`). Brytepunkt er 900 px (`md:` er satt til 900px).
 
-Tokens ligger i `@theme` i `src/app/globals.css` (sand, forest, gold, ink, sage osv.). Fonter: Bricolage Grotesque (`font-serif`, brukes til alle overskrifter), Inter (brødtekst), JetBrains Mono (labels). Bruk ikke tankestrek ("–") i tekst, bare vanlig bindestrek ("-").
+Tokens ligger i `@theme` i `src/app/globals.css` (sand, forest, gold, ink, sage osv.). Fonter: DM Serif Display (`font-serif`, brukes til alle overskrifter, kun vekt 400 og kursiv), Inter (brødtekst), JetBrains Mono (labels). Bruk ikke tankestrek ("–") i tekst, bare vanlig bindestrek ("-").
 
 ## Kommandoer
 

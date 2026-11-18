@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
-import { Bricolage_Grotesque, Inter, JetBrains_Mono } from "next/font/google";
+import { DM_Serif_Display, Inter, JetBrains_Mono } from "next/font/google";
 import { getLang } from "@/lib/i18n";
 import "./globals.css";
 
-const bricolage = Bricolage_Grotesque({ variable: "--font-bricolage", subsets: ["latin"], axes: ["opsz"] });
+// Only comes in weight 400; globals.css turns off faux bold for font-serif.
+const dmSerif = DM_Serif_Display({ variable: "--font-dm-serif", subsets: ["latin"], weight: "400", style: ["normal", "italic"] });
 const inter = Inter({ variable: "--font-inter", subsets: ["latin"] });
 const jetbrains = JetBrains_Mono({ variable: "--font-jetbrains", subsets: ["latin"] });
 
@@ -15,7 +16,7 @@ export const metadata: Metadata = {
 export default async function RootLayout({ children }: LayoutProps<"/">) {
   const lang = await getLang();
   return (
-    <html lang={lang} data-scroll-behavior="smooth" className={`${bricolage.variable} ${inter.variable} ${jetbrains.variable} antialiased`}>
+    <html lang={lang} data-scroll-behavior="smooth" className={`${dmSerif.variable} ${inter.variable} ${jetbrains.variable} antialiased`}>
       <body className="min-h-screen">{children}</body>
     </html>
   );
