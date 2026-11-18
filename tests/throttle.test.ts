@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { clearFailures, clientIp, isThrottled, recordFailure } from "@/lib/auth";
+import { clearFailures, clientIp, isThrottled, recordFailure, reserveAttempt } from "@/lib/auth";
 
 describe("login throttle", () => {
   it("blocks after 5 failures and resets after the window", () => {
@@ -16,6 +16,17 @@ describe("login throttle", () => {
     for (let i = 0; i < 5; i++) recordFailure(key);
     clearFailures(key);
     expect(isThrottled(key)).toBe(false);
+  });
+});
+
+describe("reserveAttempt", () => {
+  it("counts before the password check, so parallel attempts can't all pass", () => {
+    const key = "7.7.7.7";
+    const t0 = 2_000_000;
+    // Simulates 20 requests arriving before any of them has finished bcrypt
+    const allowed = Array.from({ length: 20 }, () => reserveAttempt(key, t0)).filter(Boolean).length;
+    expect(allowed).toBe(5);
+    expect(isThrottled(key, t0)).toBe(true);
   });
 });
 

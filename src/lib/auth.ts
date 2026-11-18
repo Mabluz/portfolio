@@ -56,8 +56,18 @@ export async function destroySession() {
 export function clientIp(h: { get(name: string): string | null }) {
   const real = h.get("x-real-ip")?.trim();
   if (real) return real;
+  warnMissingRealIp();
   const last = h.get("x-forwarded-for")?.split(",").at(-1)?.trim();
   return last || "unknown";
+}
+
+// Without X-Real-IP from the proxy, the throttle key is weaker (or shared by everyone as "unknown").
+// Say so once in production, so a misconfigured nginx shows up in the logs.
+let warnedRealIp = false;
+function warnMissingRealIp() {
+  if (warnedRealIp || process.env.NODE_ENV !== "production") return;
+  warnedRealIp = true;
+  console.warn("[auth] X-Real-IP mangler på innloggingsforespørsel. Sett `proxy_set_header X-Real-IP $remote_addr;` i nginx, ellers er innloggingsgrensen svakere.");
 }
 
 // In-memory login throttle: 5 failed attempts per key per 15 minutes.
@@ -70,6 +80,17 @@ export function isThrottled(key: string, now = Date.now()) {
   const entry = attempts.get(key);
   if (!entry || entry.resetAt < now) return false;
   return entry.count >= MAX_ATTEMPTS;
+}
+
+/**
+ * Checks the limit and counts the attempt in one synchronous step, before any await. Counting only
+ * after the slow bcrypt compare would let parallel requests all pass the check while the count is 0.
+ * Returns false when the key is throttled. Call clearFailures on a successful login.
+ */
+export function reserveAttempt(key: string, now = Date.now()) {
+  if (isThrottled(key, now)) return false;
+  recordFailure(key, now);
+  return true;
 }
 
 export function recordFailure(key: string, now = Date.now()) {

@@ -2,7 +2,7 @@
 import bcrypt from "bcryptjs";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
-import { clearFailures, clientIp, createSession, destroySession, isThrottled, recordFailure } from "@/lib/auth";
+import { clearFailures, clientIp, createSession, destroySession, reserveAttempt } from "@/lib/auth";
 import { db } from "@/lib/db";
 
 // Compared against when the user does not exist, so timing doesn't reveal valid usernames.
@@ -16,14 +16,12 @@ export async function login(_prev: LoginState, formData: FormData): Promise<Logi
   const password = String(formData.get("password") ?? "");
 
   const key = clientIp(await headers());
-  if (isThrottled(key)) return { error: "For mange forsøk. Prøv igjen om en stund." };
+  // Counted up front (see reserveAttempt); cleared again below if the login succeeds.
+  if (!reserveAttempt(key)) return { error: "For mange forsøk. Prøv igjen om en stund." };
 
   const user = username ? await db.adminUser.findUnique({ where: { username } }) : null;
   const ok = await bcrypt.compare(password, user?.passwordHash ?? (await getDummyHash()));
-  if (!user || !ok) {
-    recordFailure(key);
-    return { error: "Feil brukernavn eller passord." };
-  }
+  if (!user || !ok) return { error: "Feil brukernavn eller passord." };
 
   clearFailures(key);
   await createSession(user.id);
