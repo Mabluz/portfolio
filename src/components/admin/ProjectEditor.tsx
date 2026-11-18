@@ -49,6 +49,7 @@ export function ProjectEditor({ initial, allTechs }: { initial: EditorData; allT
   const [techPick, setTechPick] = useState("");
 
   const change = (patch: Partial<EditorData>) => { setData((d) => ({ ...d, ...patch })); setDirty(true); setMessage(null); };
+  const changeImages = (update: (images: EditorImage[]) => EditorImage[]) => { setData((d) => ({ ...d, images: update(d.images) })); setDirty(true); setMessage(null); };
   const setTr = (key: keyof Tr, value: string) => {
     const next = { ...data.translations, [lang]: { ...data.translations[lang], [key]: value } };
     const patch: Partial<EditorData> = { translations: next };
@@ -150,7 +151,7 @@ export function ProjectEditor({ initial, allTechs }: { initial: EditorData; allT
           <section className={card}>
             <h2 className="m-0 mb-1 text-[17px] font-semibold">Bilder</h2>
             <p className="mt-0 mb-5 text-sm text-muted-2">Dra for å endre rekkefølge. Det første bildet er hovedbildet og vises alltid i full bredde øverst. For de andre velger du hvor bredt de vises i galleriet. Opplasting og fjerning skjer med en gang; rekkefølge, bredde og bildetekst lagres med «{saveLabel}».</p>
-            <ImageManager projectId={data.id} images={data.images} lang={lang} onChange={(images) => change({ images })} />
+            <ImageManager projectId={data.id} images={data.images} lang={lang} onChange={changeImages} />
           </section>
 
           <section className={card}>

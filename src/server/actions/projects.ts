@@ -91,25 +91,35 @@ export async function reorderProjects(ids: number[]): Promise<ActionResult> {
 
 export type UploadedImage = { id: number; path: string; width: number; height: number };
 
-export async function uploadProjectImages(projectId: number, formData: FormData): Promise<ActionResult<{ images: UploadedImage[] }>> {
+/**
+ * Saves the images one by one. If one fails, the ones already saved are still returned along with
+ * the error, so the editor shows them instead of leaving invisible rows behind.
+ */
+export async function uploadProjectImages(projectId: number, formData: FormData): Promise<{ images: UploadedImage[]; error?: string }> {
   await requireAdmin();
   const files = formData.getAll("files").filter((f): f is File => f instanceof File && f.size > 0);
-  if (files.length === 0) return { ok: false, error: "Ingen filer valgt" };
+  if (files.length === 0) return { images: [], error: "Ingen filer valgt" };
   const last = await db.projectImage.aggregate({ where: { projectId }, _max: { sortOrder: true } });
   let order = (last._max.sortOrder ?? -1) + 1;
   const images: UploadedImage[] = [];
-  try {
-    for (const file of files) {
+  let error: string | undefined;
+  for (const file of files) {
+    let savedPath: string | undefined;
+    try {
       const saved = await saveImage(file, `projects/${projectId}`);
+      savedPath = saved.path;
       const sortOrder = order++;
       const row = await db.projectImage.create({ data: { projectId, ...saved, sortOrder, galleryWidth: sortOrder === 0 ? "FULL" : "HALF" } });
       images.push({ id: row.id, path: row.path, width: row.width, height: row.height });
+    } catch (e) {
+      // The file may be on disk without a row; remove it so nothing is orphaned
+      if (savedPath) await deleteUpload(savedPath).catch(() => {});
+      error = `${file.name}: ${e instanceof Error ? e.message : "Opplasting feilet"}`;
+      break;
     }
-  } catch (e) {
-    return { ok: false, error: e instanceof Error ? e.message : "Opplasting feilet" };
   }
-  revalidateSite();
-  return { ok: true, images };
+  if (images.length > 0) revalidateSite();
+  return { images, error };
 }
 
 export async function deleteProjectImage(projectId: number, imageId: number): Promise<ActionResult> {

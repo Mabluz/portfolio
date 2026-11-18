@@ -18,7 +18,12 @@ const WIDTHS = [
   ["THIRD", "En tredjedel", 3],
 ] as const;
 
-type Props = { projectId: number; images: EditorImage[]; lang: "no" | "en"; onChange: (images: EditorImage[]) => void };
+/** Takes an updater, not a list, so results that arrive after an await apply to the current images. */
+type Props = { projectId: number; images: EditorImage[]; lang: "no" | "en"; onChange: (update: (images: EditorImage[]) => EditorImage[]) => void };
+
+// Same limit as MAX_IMAGE_BYTES in lib/uploads (server-only). Each file goes in its own request,
+// so a single image stays under the 20 MB Server Action body limit.
+const MAX_IMAGE_MB = 15;
 
 function Thumb({ img, index, lang, onPatch, onRemove }: { img: EditorImage; index: number; lang: "no" | "en"; onPatch: (p: Partial<EditorImage>) => void; onRemove: () => void }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: img.id });
@@ -61,24 +66,43 @@ export function ImageManager({ projectId, images, lang, onChange }: Props) {
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }), useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }));
 
   function upload(files: FileList | File[]) {
-    const list = Array.from(files).filter((f) => f.type.startsWith("image/"));
-    if (list.length === 0) return;
-    const fd = new FormData();
-    list.forEach((f) => fd.append("files", f));
-    setError(null);
-    start(async () => {
-      const res = await uploadProjectImages(projectId, fd);
-      if (!res.ok) { setError(res.error); return; }
-      onChange([...images, ...res.images.map((i, k) => ({ ...i, galleryWidth: (images.length + k === 0 ? "FULL" : "HALF") as EditorImage["galleryWidth"], captionNo: "", captionEn: "" }))]);
-    });
+    const all = Array.from(files).filter((f) => f.type.startsWith("image/"));
+    const tooBig = all.filter((f) => f.size > MAX_IMAGE_MB * 1024 * 1024);
+    const list = all.filter((f) => !tooBig.includes(f));
     if (input.current) input.current.value = "";
+    setError(tooBig.length ? `For stort (maks ${MAX_IMAGE_MB} MB): ${tooBig.map((f) => f.name).join(", ")}` : null);
+    if (list.length === 0) return;
+    start(async () => {
+      for (const file of list) {
+        const fd = new FormData();
+        fd.append("files", file);
+        let res: Awaited<ReturnType<typeof uploadProjectImages>>;
+        try {
+          res = await uploadProjectImages(projectId, fd);
+        } catch {
+          setError(`${file.name}: opplastingen feilet. Prøv igjen.`);
+          return;
+        }
+        if (res.images.length > 0) {
+          onChange((current) => [
+            ...current,
+            ...res.images.map((i, k) => ({ ...i, galleryWidth: (current.length + k === 0 ? "FULL" : "HALF") as EditorImage["galleryWidth"], captionNo: "", captionEn: "" })),
+          ]);
+        }
+        if (res.error) { setError(res.error); return; }
+      }
+    });
   }
 
   function remove(img: EditorImage) {
     start(async () => {
-      const res = await deleteProjectImage(projectId, img.id);
-      if (!res.ok) setError(res.error);
-      else onChange(images.filter((i) => i.id !== img.id));
+      try {
+        const res = await deleteProjectImage(projectId, img.id);
+        if (!res.ok) setError(res.error);
+        else onChange((current) => current.filter((i) => i.id !== img.id));
+      } catch {
+        setError("Kunne ikke fjerne bildet. Prøv igjen.");
+      }
     });
   }
 
@@ -86,7 +110,8 @@ export function ImageManager({ projectId, images, lang, onChange }: Props) {
     if (!e.over || e.active.id === e.over.id) return;
     const from = images.findIndex((i) => i.id === e.active.id);
     const to = images.findIndex((i) => i.id === e.over!.id);
-    onChange(arrayMove(images, from, to));
+    if (from < 0 || to < 0) return;
+    onChange((current) => arrayMove(current, from, to));
   }
 
   return (
@@ -107,7 +132,7 @@ export function ImageManager({ projectId, images, lang, onChange }: Props) {
         <SortableContext items={images.map((i) => i.id)} strategy={rectSortingStrategy}>
           <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
             {images.map((img, i) => (
-              <Thumb key={img.id} img={img} index={i} lang={lang} onRemove={() => remove(img)} onPatch={(p) => onChange(images.map((x) => (x.id === img.id ? { ...x, ...p } : x)))} />
+              <Thumb key={img.id} img={img} index={i} lang={lang} onRemove={() => remove(img)} onPatch={(p) => onChange((current) => current.map((x) => (x.id === img.id ? { ...x, ...p } : x)))} />
             ))}
           </div>
         </SortableContext>
