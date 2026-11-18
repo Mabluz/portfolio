@@ -1,6 +1,7 @@
 import "server-only";
 import { createHash, randomBytes } from "node:crypto";
 import { cookies } from "next/headers";
+import { cache } from "react";
 import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
 
@@ -22,8 +23,8 @@ export async function createSession(userId: number) {
   });
 }
 
-/** The logged-in admin, or null. Expired sessions are deleted on read. */
-export async function getAdmin() {
+/** The logged-in admin, or null. Expired sessions are deleted on read. Cached per request. */
+export const getAdmin = cache(async () => {
   const token = (await cookies()).get(SESSION_COOKIE)?.value;
   if (!token) return null;
   const session = await db.session.findUnique({ where: { id: hash(token) }, include: { user: true } });
@@ -33,7 +34,7 @@ export async function getAdmin() {
     return null;
   }
   return session.user;
-}
+});
 
 export async function requireAdmin() {
   const admin = await getAdmin();

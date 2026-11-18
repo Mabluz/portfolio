@@ -1,6 +1,7 @@
 import "server-only";
+import { cache } from "react";
 import { db } from "@/lib/db";
-import type { Prisma } from "@/generated/prisma/client";
+import type { Prisma, SiteSettings } from "@/generated/prisma/client";
 
 export const projectInclude = {
   translations: true,
@@ -23,21 +24,36 @@ export function publishedProjects(): Promise<FullProject[]> {
   });
 }
 
-export function projectBySlug(slug: string, includeDrafts: boolean): Promise<FullProject | null> {
-  return db.project.findFirst({
+/** Cached per request, so generateMetadata and the page share one query. */
+export const projectBySlug = cache((slug: string, includeDrafts: boolean): Promise<FullProject | null> =>
+  db.project.findFirst({
     where: { slug, ...(includeDrafts ? {} : { status: "PUBLISHED" }) },
     include: projectInclude,
-  });
-}
+  }),
+);
 
-export async function getSettings() {
-  return db.siteSettings.upsert({ where: { id: 1 }, update: {}, create: { id: 1 } });
-}
+// Matches the column defaults in the schema; used until the row has been written once.
+const DEFAULT_SETTINGS: SiteSettings = {
+  id: 1, currentProjectId: null, nowTextNo: "", nowTextEn: "", aboutLeadNo: "", aboutLeadEn: "",
+  aboutBodyNo: "", aboutBodyEn: "", photoPath: null, cvPath: null, cvUpdatedAt: null,
+  email: "", githubUrl: "", linkedinUrl: "", tools: [],
+};
+
+/** Read-only: the row is created by the actions in server/actions/about.ts, which all upsert. */
+export const getSettings = cache(async (): Promise<SiteSettings> =>
+  (await db.siteSettings.findUnique({ where: { id: 1 } })) ?? DEFAULT_SETTINGS,
+);
+
+export type NextProject = { slug: string; translations: { locale: string; title: string }[] };
 
 /** Next published project after `id` in display order (wraps around). Null if there is no other. */
-export async function nextProject(id: number): Promise<FullProject | null> {
-  const all = await publishedProjects();
-  if (all.filter((p) => p.id !== id).length === 0) return null;
+export async function nextProject(id: number): Promise<NextProject | null> {
+  const all = await db.project.findMany({
+    where: { status: "PUBLISHED" },
+    select: { id: true, slug: true, translations: { select: { locale: true, title: true } } },
+    orderBy: [{ sortOrder: "asc" }, { id: "asc" }],
+  });
+  if (!all.some((p) => p.id !== id)) return null;
   const idx = all.findIndex((p) => p.id === id);
   return all[(idx + 1) % all.length];
 }

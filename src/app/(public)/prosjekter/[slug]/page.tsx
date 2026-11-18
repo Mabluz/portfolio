@@ -38,7 +38,8 @@ export default async function ProjectPage({ params }: PageProps<"/prosjekter/[sl
   const en = tr(project, "en");
   const txt = (k: "title" | "tagline" | "description" | "why" | "learned" | "role") => pick(lang, no?.[k], en?.[k]);
   const next = await nextProject(project.id);
-  const nextText = next && pick(lang, tr(next, "no")?.title, tr(next, "en")?.title);
+  const nextTitle = (locale: string) => next?.translations.find((x) => x.locale === locale)?.title;
+  const nextText = next && pick(lang, nextTitle("no"), nextTitle("en"));
 
   const [hero, ...rest] = project.images;
   const meta: [string, string][] = [
