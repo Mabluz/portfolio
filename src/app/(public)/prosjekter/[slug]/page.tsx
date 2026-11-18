@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { LightboxProvider, LightboxTrigger, type LightboxImage } from "@/components/public/Lightbox";
 import { LaptopFrame } from "@/components/ui/LaptopFrame";
 import { ArrowLeft, ArrowRight, ArrowUpRight, Github } from "@/components/ui/Icons";
 import { btnGhost, btnPrimary } from "@/components/ui/buttons";
@@ -52,9 +53,16 @@ export default async function ProjectPage({ params }: PageProps<"/prosjekter/[sl
   const description = txt("description");
   const learned = txt("learned");
   const why = txt("why");
+  // Every image on the page, in order, so the enlarged view can step through them
+  const lightbox: LightboxImage[] = project.images.map((img, i) => {
+    const caption = pick(lang, img.captionNo, img.captionEn);
+    return { src: imageUrl(img.path)!, width: img.width, height: img.height, caption, alt: caption || (i === 0 ? txt("title") : `${txt("title")} ${i + 1}`) };
+  });
+  const lightboxLabels = { open: t.imgOpen, close: t.imgClose, prev: t.imgPrev, next: t.imgNext, counter: t.imgCounter };
 
   return (
     <main>
+      <LightboxProvider images={lightbox} labels={lightboxLabels}>
       <section className="mx-auto max-w-[1240px] px-6 pt-10 pb-14 md:px-16 md:pt-[72px]">
         <Link href="/" className="mb-8 inline-flex min-h-11 items-center gap-2 text-[15px] font-medium text-ink no-underline hover:text-forest">
           <ArrowLeft />{t.back}
@@ -90,7 +98,13 @@ export default async function ProjectPage({ params }: PageProps<"/prosjekter/[sl
 
       <section className="mx-auto max-w-[1240px] px-6 pt-6 pb-24 md:px-16 md:pb-28">
         <div className="flex justify-center py-4">
-          <LaptopFrame src={imageUrl(hero?.path)} width={hero?.width} height={hero?.height} alt={txt("title")} placeholder={t.screenshot} widthClass="w-[84%]" />
+          {hero ? (
+            <LightboxTrigger index={0} label={t.imgOpen} className="w-[84%]">
+              <LaptopFrame src={imageUrl(hero.path)} width={hero.width} height={hero.height} alt={txt("title")} placeholder={t.screenshot} widthClass="w-full" />
+            </LightboxTrigger>
+          ) : (
+            <LaptopFrame src={null} alt={txt("title")} placeholder={t.screenshot} widthClass="w-[84%]" />
+          )}
         </div>
       </section>
 
@@ -116,13 +130,15 @@ export default async function ProjectPage({ params }: PageProps<"/prosjekter/[sl
             <h2 className="font-serif m-0 text-4xl font-medium md:text-[44px]">{t.gallery}</h2>
           </div>
           <div className="grid gap-6 md:grid-cols-6">
-            {rest.map((img) => {
+            {rest.map((img, i) => {
               const caption = pick(lang, img.captionNo, img.captionEn);
               return (
                 <figure key={img.id} className={`m-0 ${SPAN[img.galleryWidth]}`}>
-                  <div className="relative overflow-hidden rounded-[18px] border-[1.5px] border-ink bg-paper" style={{ aspectRatio: RATIO[img.galleryWidth] }}>
-                    <Image src={imageUrl(img.path)!} alt={caption} width={img.width} height={img.height} unoptimized className="h-full w-full object-cover object-top" />
-                  </div>
+                  <LightboxTrigger index={i + 1} label={caption ? `${t.imgOpen}: ${caption}` : t.imgOpen} className="group w-full">
+                    <div className="relative overflow-hidden rounded-[18px] border-[1.5px] border-ink bg-paper" style={{ aspectRatio: RATIO[img.galleryWidth] }}>
+                      <Image src={imageUrl(img.path)!} alt={caption} width={img.width} height={img.height} unoptimized className="h-full w-full object-cover object-top transition-transform duration-300 group-hover:scale-[1.02]" />
+                    </div>
+                  </LightboxTrigger>
                   {caption && <figcaption className="mt-3 text-sm text-muted-2">{caption}</figcaption>}
                 </figure>
               );
@@ -188,6 +204,7 @@ export default async function ProjectPage({ params }: PageProps<"/prosjekter/[sl
           </div>
         </section>
       )}
+      </LightboxProvider>
     </main>
   );
 }

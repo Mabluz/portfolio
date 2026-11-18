@@ -32,6 +32,7 @@ export const dict = {
     aboutProject: "Om prosjektet", gallery: "Bilder", techTitle: "Teknologivalg",
     techIntro: "Teknologiene prosjektet er bygget med, og hvorfor akkurat de ble valgt.",
     learnTitle: "Utfordringer og lærdom", nextLabel: "Neste prosjekt",
+    imgOpen: "Vis bildet større", imgClose: "Lukk", imgPrev: "Forrige bilde", imgNext: "Neste bilde", imgCounter: "{n} av {total}",
     langLabel: "Språk / Language", mainMenu: "Hovedmeny",
   },
   en: {
@@ -55,6 +56,7 @@ export const dict = {
     aboutProject: "About the project", gallery: "Images", techTitle: "Tech choices",
     techIntro: "The technologies the project is built with, and why they were chosen.",
     learnTitle: "Challenges and lessons", nextLabel: "Next project",
+    imgOpen: "View larger image", imgClose: "Close", imgPrev: "Previous image", imgNext: "Next image", imgCounter: "{n} of {total}",
     langLabel: "Språk / Language", mainMenu: "Main menu",
   },
 } as const;
