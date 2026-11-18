@@ -1,7 +1,7 @@
 /**
  * Create the admin user, or reset its password if the username already exists.
  *   local:   pnpm admin:create
- *   server:  docker compose exec portfolio node scripts/admin-create.js
+ *   server:  docker compose exec portfolio node scripts/admin-create.mjs
  * Set ADMIN_USERNAME / ADMIN_PASSWORD to run non-interactively.
  */
 import "dotenv/config";
