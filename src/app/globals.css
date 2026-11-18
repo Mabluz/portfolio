@@ -1,0 +1,48 @@
+@import "tailwindcss";
+
+@theme {
+  --color-sand: #f3eee3;
+  --color-beige: #e6dac0;
+  --color-forest: #1f4d3a;
+  --color-forest-dark: #123326;
+  --color-sage: #d9e3d4;
+  --color-gold: #e3b744;
+  --color-gold-dark: #d4a532;
+  --color-ink: #2b2a24;
+  --color-muted: #4a4536;
+  --color-muted-2: #5a5444;
+  --color-paper: #fffdf7;
+  --color-tag: #e4dcc9;
+  --color-line: #cfc6b1;
+  --color-admin-bg: #f7f4ec;
+  --color-admin-line: #e2daca;
+
+  --font-sans: var(--font-inter), system-ui, sans-serif;
+  --font-serif: var(--font-bricolage), system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains), ui-monospace, monospace;
+
+  --breakpoint-md: 900px;
+}
+
+body {
+  margin: 0;
+  background: var(--color-sand);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+}
+
+.font-serif {
+  font-optical-sizing: auto;
+  letter-spacing: -0.015em;
+}
+
+@keyframes pulse-ring {
+  0% { transform: scale(0.5); opacity: 1; }
+  100% { transform: scale(1.6); opacity: 0; }
+}
+.pulse-dot { position: relative; width: 10px; height: 10px; border-radius: 9999px; background: #2f8a5b; flex-shrink: 0; }
+.pulse-dot::after { content: ""; position: absolute; inset: -5px; border-radius: 9999px; border: 2px solid #2f8a5b; animation: pulse-ring 1.8s ease-out infinite; }
+@media (prefers-reduced-motion: reduce) {
+  .pulse-dot::after { animation: none; }
+  * { transition: none !important; }
+}
