@@ -74,7 +74,7 @@ export default async function HomePage() {
       </section>
 
       {big.length > 0 && (
-        <section id="store" className="mx-auto max-w-[1240px] px-6 pt-10 pb-24 md:px-16 md:pb-[120px]">
+        <section id="store" className="mx-auto scroll-mt-16 max-w-[1240px] px-6 pt-10 pb-24 md:px-16 md:pb-[120px]">
           <SectionHeader num="01" title={t.bigTitle} intro={t.bigIntro} />
           <div className="flex flex-col gap-24">
             {big.map((p, i) => {
