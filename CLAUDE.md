@@ -41,7 +41,7 @@ pnpm typecheck && pnpm lint && pnpm test
 - **Server Actions**: body-grense er satt til 20 MB i `next.config.ts`. Origin sjekkes mot forwarded host, så reverse proxy må sende `X-Forwarded-Host`. Innloggingsgrensen bruker `X-Real-IP` (nginx: `$remote_addr`), ellers siste verdi i `X-Forwarded-For`; aldri den første, den styres av klienten.
 - Dynamiske sider: `cacheComponents` og `partialPrefetching` er bevisst skrudd av.
 - **Datamodell** (`prisma/schema.prisma`): Project (BIG/SMALL, DRAFT/PUBLISHED/HIDDEN, LIVE/IN_PROGRESS), ProjectTranslation, ProjectImage (første bilde er hovedbilde og alltid full bredde), Tech + ProjectTech (delt liste med begrunnelse per prosjekt), Lesson, SiteSettings (singleton id=1), AdminUser, Session.
-- Skrive migrasjoner med `pnpm db:migrate`; produksjon kjører `prisma migrate deploy` ved oppstart (se `docker-entrypoint.sh`).
+- Skrive migrasjoner med `pnpm db:migrate`; produksjon kjører `prisma migrate deploy` ved oppstart (se `docker-entrypoint.sh`). Migrasjoner må være bakoverkompatible med forrige versjon (expand/contract), fordi automatisk tilbakerulling i `deploy.sh` ikke reverserer dem. Gi nytt navn til eller fjern kolonner over to deployer.
 
 ## Deploy
 
@@ -51,7 +51,7 @@ Speiler `../zellstrikka`: GitHub Actions (`ci.yml`, `deploy.yml`) kopierer bygge
 
 ## Status og kjente hull
 
-- Verifisert: typecheck, lint, 24 tester, produksjonsbygg, Docker-image, innlogging, prosjektredigering og bildeopplasting.
+- Verifisert: typecheck, lint, 29 tester, produksjonsbygg, Docker-image, innlogging, prosjektredigering og bildeopplasting.
 - Ikke testet manuelt: dra-og-slipp-rekkefølge, opprette og slette prosjekt, "Om meg"-siden, CV-opplasting, mobilvisning i admin, GitHub Actions-workflowene.
 - Ingenting er committet ennå (git init er gjort).
 - Lokal dev-admin finnes i dev-databasen: `marius` / `dev-password-12345`. Kun lokalt; bytt med `pnpm admin:create`.

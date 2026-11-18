@@ -77,6 +77,13 @@ docker images portfolio                       # deployed SHAs are the tags
 ROLLBACK_TO=<sha> sh scripts/deploy.sh        # run in PORTFOLIO_PATH
 ```
 
+### Migrations
+
+Migrations run on container start, before the health check. If a deploy becomes unhealthy, `deploy.sh` rolls the image back, but Prisma never reverts migrations, so the previous version then runs against the new schema (the script prints which migrations were involved). Keep every migration backward compatible with the version before it:
+
+- adding tables, nullable columns or columns with a default is safe;
+- to rename or remove a column, do it in two deploys: first stop using it in code, then drop it in a later migration.
+
 ## Project layout
 
 ```

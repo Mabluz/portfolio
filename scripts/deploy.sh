@@ -38,6 +38,16 @@ wait_healthy() {
   return 1
 }
 
+# Migrations in image $1 that image $2 doesn't have. Prisma never reverts them, so after a
+# rollback the old code runs against the newer schema (see "Migrations" in README.md).
+new_migrations() {
+  list() { docker run --rm --entrypoint ls "$1" /opt/migrate/prisma/migrations 2>/dev/null | grep -v '\.toml$' | sort; }
+  list "$1" > /tmp/portfolio-mig-new.$$ || true
+  list "$2" > /tmp/portfolio-mig-old.$$ || true
+  comm -23 /tmp/portfolio-mig-new.$$ /tmp/portfolio-mig-old.$$
+  rm -f /tmp/portfolio-mig-new.$$ /tmp/portfolio-mig-old.$$
+}
+
 start() {
   docker compose up -d --no-build "$SERVICE"
   wait_healthy
@@ -69,6 +79,12 @@ else
   docker compose logs --tail 80 "$SERVICE" || true
   if [ "$HAVE_PREVIOUS" = "1" ]; then
     echo "Rolling back to the previous image"
+    APPLIED="$(new_migrations "$REPO:$SHA" "$REPO:previous" || true)"
+    if [ -n "$APPLIED" ]; then
+      echo "WARNING: these migrations may already be applied and are NOT reverted by the rollback:"
+      echo "$APPLIED" | sed 's/^/  /'
+      echo "The previous version only works if they are backward compatible (expand/contract)."
+    fi
     docker tag "$REPO:previous" "$IMAGE"
     start && echo "Rollback healthy" || echo "Rollback is not healthy either!"
   fi
