@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { LaptopFrame } from "@/components/ui/LaptopFrame";
 import { ArrowRight } from "@/components/ui/Icons";
+import { StatusBadge } from "./StatusBadge";
 import { heroTexts, type Dict, type Progress } from "@/lib/i18n";
 
 type Props = { t: Dict; slug: string; title: string; text: string; image: string | null; tags: string[]; progress: Progress };
@@ -36,9 +37,7 @@ export function NowCard({ t, slug, title, text, image, tags, progress }: Props) 
           </span>
         </div>
       </div>
-      <span aria-hidden="true" className="font-serif absolute -top-[30px] -right-[26px] box-border flex h-[92px] w-[92px] rotate-12 items-center justify-center rounded-full border-[1.5px] border-ink bg-gold p-2.5 text-center text-[19px] leading-[1.05] font-semibold italic">
-        {badge}
-      </span>
+      <span aria-hidden="true" className="contents"><StatusBadge progress={progress} label={badge} /></span>
     </Link>
   );
 }
