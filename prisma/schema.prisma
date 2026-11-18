@@ -21,6 +21,8 @@ enum ProjectStatus {
 enum Progress {
   LIVE
   IN_PROGRESS
+  ABANDONED // gitt opp
+  DISCONTINUED // lagt ned
 }
 
 enum GalleryWidth {
@@ -137,6 +139,7 @@ model SiteSettings {
   id               Int       @id @default(1)
   currentProjectId Int?
   currentProject   Project?  @relation(fields: [currentProjectId], references: [id], onDelete: SetNull)
+  // Utgått: hero-kortet bruker prosjektets tagline. Fjernes i en senere deploy (expand/contract).
   nowTextNo        String    @default("")
   nowTextEn        String    @default("")
   aboutLeadNo      String    @default("")
