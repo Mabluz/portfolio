@@ -1,0 +1,67 @@
+name: Deploy Portfolio
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+# Never run two deploys at the same time
+concurrency:
+  group: deploy-portfolio
+  cancel-in-progress: false
+
+jobs:
+  ci:
+    uses: ./.github/workflows/ci.yml
+
+  deploy:
+    needs: ci
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      # scp only adds and overwrites files, so source files deleted or moved in git
+      # would otherwise stay on the server and be compiled into the image.
+      # Only the app source and migrations are cleared; the server's own docker-compose.yml,
+      # .env and the uploads volume are never touched.
+      - name: Remove old source on server
+        uses: appleboy/ssh-action@v1.2.5
+        env:
+          PORTFOLIO_PATH: ${{ secrets.PORTFOLIO_PATH }}
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          envs: PORTFOLIO_PATH
+          script: |
+            set -e
+            cd "$PORTFOLIO_PATH"
+            rm -rf src prisma public scripts
+
+      - name: Copy build context to server
+        uses: appleboy/scp-action@v1.0.0
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          # Only what the image build needs (see .dockerignore)
+          source: "package.json,pnpm-lock.yaml,pnpm-workspace.yaml,next.config.ts,tsconfig.json,prisma.config.ts,Dockerfile,.dockerignore,docker-entrypoint.sh,src,prisma,public,scripts"
+          target: ${{ secrets.PORTFOLIO_PATH }}
+          strip_components: 0
+
+      - name: Build, start and health-check (rolls back automatically on failure)
+        uses: appleboy/ssh-action@v1.2.5
+        env:
+          PORTFOLIO_PATH: ${{ secrets.PORTFOLIO_PATH }}
+          DEPLOY_SHA: ${{ github.sha }}
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          envs: PORTFOLIO_PATH,DEPLOY_SHA
+          script: |
+            set -e
+            cd "$PORTFOLIO_PATH"
+            DEPLOY_SHA="$DEPLOY_SHA" sh scripts/deploy.sh

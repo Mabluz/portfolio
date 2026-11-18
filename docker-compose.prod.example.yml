@@ -1,0 +1,28 @@
+# Copy this to the server as docker-compose.yml, next to the .env file (see .env.example).
+# CI never overwrites docker-compose.yml or .env on the server, only the build context.
+services:
+  portfolio:
+    build: .
+    image: portfolio:latest
+    container_name: portfolio
+    restart: unless-stopped
+    env_file: .env
+    ports:
+      # Only reachable from the host; the web server proxies the domain to this port.
+      - "127.0.0.1:3100:3100"
+    volumes:
+      - portfolio_uploads:/app/uploads
+    networks:
+      - default
+      - shared-db
+
+volumes:
+  portfolio_uploads:
+
+networks:
+  # The Docker network the shared PostgreSQL container is on. Use its name here, and use the
+  # Postgres container name as the host in DATABASE_URL, e.g.
+  # postgresql://portfolio:PASSWORD@shared-postgres:5432/portfolio
+  shared-db:
+    external: true
+    name: CHANGE_ME_shared_db_network

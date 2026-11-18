@@ -1,0 +1,15 @@
+**
+!package.json
+!pnpm-lock.yaml
+!pnpm-workspace.yaml
+!next.config.ts
+!tsconfig.json
+!prisma.config.ts
+!docker-entrypoint.sh
+!prisma/
+!public/
+!src/
+!scripts/
+src/generated
+**/node_modules
+**/.DS_Store
