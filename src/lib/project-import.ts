@@ -80,7 +80,7 @@ const EXAMPLE = {
 /** The prompt to give an AI that can see the project (e.g. a coding agent in the repo). */
 export function buildAiPrompt(existingTechs: string[]): string {
   const techs = existingTechs.length > 0 ? existingTechs.join(", ") : "(ingen ennå)";
-  return `Du skal dokumentere et programmeringsprosjekt for porteføljen min. Se gjennom prosjektet (kode, README, git-historikk og det du ellers har tilgang til) og svar med ÉN JSON-fil og ingenting annet. Lagre den gjerne som portfolio-prosjekt.json, og vis innholdet i en \`\`\`json-blokk.
+  return `Du skal dokumentere et programmeringsprosjekt for porteføljen min. Se gjennom prosjektet (kode, README, git-historikk og det du ellers har tilgang til) og lag ÉN JSON-fil. Lagre filen som portfolio-prosjekt.json i rotmappen til prosjektet (samme mappe som README og package.json e.l.). Overskriv den hvis den finnes fra før. Filen skal bare inneholde JSON, ingenting annet.
 
 Formatet er nøyaktig dette (alle felter skal være med, bruk "" når du ikke vet):
 
