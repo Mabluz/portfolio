@@ -1,0 +1,153 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum ProjectType {
+  BIG
+  SMALL
+}
+
+enum ProjectStatus {
+  DRAFT
+  PUBLISHED
+  HIDDEN
+}
+
+enum Progress {
+  LIVE
+  IN_PROGRESS
+}
+
+enum GalleryWidth {
+  FULL
+  HALF
+  THIRD
+}
+
+model AdminUser {
+  id           Int       @id @default(autoincrement())
+  username     String    @unique
+  passwordHash String
+  createdAt    DateTime  @default(now())
+  sessions     Session[]
+}
+
+model Session {
+  id        String    @id // sha256 of the cookie token
+  userId    Int
+  user      AdminUser @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime  @default(now())
+
+  @@index([userId])
+}
+
+model Project {
+  id           Int           @id @default(autoincrement())
+  slug         String        @unique
+  type         ProjectType   @default(SMALL)
+  status       ProjectStatus @default(DRAFT)
+  progress     Progress      @default(LIVE)
+  year         String        @default("")
+  liveUrl      String?
+  githubUrl    String?
+  sortOrder    Int           @default(0)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  translations ProjectTranslation[]
+  images       ProjectImage[]
+  techs        ProjectTech[]
+  lessons      Lesson[]
+  settings     SiteSettings[]
+
+  @@index([status, type, sortOrder])
+}
+
+model ProjectTranslation {
+  id          Int     @id @default(autoincrement())
+  projectId   Int
+  project     Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  locale      String // "no" | "en"
+  title       String  @default("")
+  tagline     String  @default("")
+  description String  @default("")
+  why         String  @default("")
+  learned     String  @default("")
+  role        String  @default("")
+
+  @@unique([projectId, locale])
+}
+
+model ProjectImage {
+  id           Int          @id @default(autoincrement())
+  projectId    Int
+  project      Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  path         String // relative to UPLOAD_DIR
+  width        Int
+  height       Int
+  sortOrder    Int          @default(0)
+  galleryWidth GalleryWidth @default(FULL)
+  captionNo    String       @default("")
+  captionEn    String       @default("")
+
+  @@index([projectId, sortOrder])
+}
+
+model Tech {
+  id       Int           @id @default(autoincrement())
+  name     String        @unique
+  abbr     String
+  roleNo   String        @default("")
+  roleEn   String        @default("")
+  projects ProjectTech[]
+}
+
+model ProjectTech {
+  projectId Int
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  techId    Int
+  tech      Tech    @relation(fields: [techId], references: [id], onDelete: Cascade)
+  sortOrder Int     @default(0)
+  whyNo     String  @default("")
+  whyEn     String  @default("")
+
+  @@id([projectId, techId])
+}
+
+model Lesson {
+  id        Int     @id @default(autoincrement())
+  projectId Int
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  sortOrder Int     @default(0)
+  headNo    String  @default("")
+  bodyNo    String  @default("")
+  headEn    String  @default("")
+  bodyEn    String  @default("")
+
+  @@index([projectId, sortOrder])
+}
+
+model SiteSettings {
+  id               Int       @id @default(1)
+  currentProjectId Int?
+  currentProject   Project?  @relation(fields: [currentProjectId], references: [id], onDelete: SetNull)
+  nowTextNo        String    @default("")
+  nowTextEn        String    @default("")
+  aboutLeadNo      String    @default("")
+  aboutLeadEn      String    @default("")
+  aboutBodyNo      String    @default("")
+  aboutBodyEn      String    @default("")
+  photoPath        String?
+  cvPath           String?
+  cvUpdatedAt      DateTime?
+  email            String    @default("")
+  githubUrl        String    @default("")
+  linkedinUrl      String    @default("")
+  tools            String[]
+}
