@@ -240,7 +240,14 @@ export function ProjectEditor({ initial, allTechs }: { initial: EditorData; allT
         </div>
 
         <aside className="flex min-w-0 flex-[1_1_320px] flex-col gap-6">
-          <AiImport techNames={techOptions.map((o) => o.name)} onImport={applyImport} />
+          <AiImport
+            techNames={techOptions.map((o) => o.name)}
+            imageInput={() => ({
+              type: data.type, no: data.translations.no, en: data.translations.en, liveUrl: data.liveUrl,
+              techs: data.techs.flatMap((r) => techOptions.find((o) => o.id === r.techId)?.name ?? []),
+            })}
+            onImport={applyImport}
+          />
           <section className={card}>
             <h2 className="m-0 mb-1 text-[17px] font-semibold">Publisering</h2>
             <p className="mt-0 mb-5 text-sm text-muted-2">Hvor prosjektet vises på siden.</p>

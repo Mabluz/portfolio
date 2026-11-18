@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import { buildImagePrompt, type ImagePromptInput } from "@/lib/image-prompt";
 import { buildAiPrompt, parseProjectImport, type ProjectImport } from "@/lib/project-import";
 
 const btn = "inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-[10px] px-[18px] text-sm font-semibold disabled:opacity-60";
@@ -8,12 +9,14 @@ const btnPrimary = `${btn} border-0 bg-forest text-sand hover:bg-forest-dark`;
 
 type Props = {
   techNames: string[];
+  /** The project as it is in the form now, for the image prompt. */
+  imageInput: () => ImagePromptInput;
   /** Fills the form. Returns an error message, or null when it worked. */
   onImport: (data: ProjectImport) => Promise<string | null>;
 };
 
 /** Copy a prompt for an AI, then paste its JSON answer back to fill in the whole project. */
-export function AiImport({ techNames, onImport }: Props) {
+export function AiImport({ techNames, imageInput, onImport }: Props) {
   const [open, setOpen] = useState(false);
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
@@ -23,6 +26,15 @@ export function AiImport({ techNames, onImport }: Props) {
     try {
       await navigator.clipboard.writeText(buildAiPrompt(techNames));
       setNote({ kind: "ok", text: "Prompten er kopiert. Gi den til en AI som kan se prosjektet, og lim inn svaret her." });
+    } catch {
+      setNote({ kind: "error", text: "Fikk ikke kopiert til utklippstavlen" });
+    }
+  }
+
+  async function copyImagePrompt() {
+    try {
+      await navigator.clipboard.writeText(buildImagePrompt(imageInput()));
+      setNote({ kind: "ok", text: "Bildeprompten er kopiert. Gi den til en AI som lager bilder, og last opp bildene under Bilder." });
     } catch {
       setNote({ kind: "error", text: "Fikk ikke kopiert til utklippstavlen" });
     }
@@ -43,10 +55,11 @@ export function AiImport({ techNames, onImport }: Props) {
   return (
     <section className="rounded-2xl border border-admin-line bg-paper p-6">
       <h2 className="m-0 mb-1 text-[17px] font-semibold">Fyll ut med AI</h2>
-      <p className="mt-0 mb-5 text-sm text-muted-2">Kopier prompten og gi den til en AI som kan se prosjektet. Lim inn JSON-svaret for å fylle inn tekst, teknologier og lærdom på begge språk.</p>
+      <p className="mt-0 mb-5 text-sm text-muted-2">Kopier prompten og gi den til en AI som kan se prosjektet. Lim inn JSON-svaret for å fylle inn tekst, teknologier og lærdom på begge språk. Bildeprompten bygges fra teksten i skjemaet, så fyll den ut først.</p>
       <div className="flex flex-wrap gap-2.5">
         <button type="button" className={btnGhost} onClick={copyPrompt}>Kopier AI-prompt</button>
         <button type="button" className={btnGhost} aria-expanded={open} aria-controls="ai-json" onClick={() => { setOpen(!open); setNote(null); }}>Lim inn JSON</button>
+        <button type="button" className={btnGhost} onClick={copyImagePrompt}>Kopier bildeprompt</button>
       </div>
       {open && (
         <div className="mt-4 flex flex-col gap-2.5">
