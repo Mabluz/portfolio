@@ -53,7 +53,6 @@ Speiler `../zellstrikka`: GitHub Actions (`ci.yml`, `deploy.yml`) kopierer bygge
 
 - Verifisert: typecheck, lint, 29 tester, produksjonsbygg, Docker-image, innlogging, prosjektredigering og bildeopplasting.
 - Ikke testet manuelt: dra-og-slipp-rekkefølge, opprette og slette prosjekt, "Om meg"-siden, CV-opplasting, mobilvisning i admin, GitHub Actions-workflowene.
-- Ingenting er committet ennå (git init er gjort).
 - Lokal dev-admin finnes i dev-databasen: `marius` / `dev-password-12345`. Kun lokalt; bytt med `pnpm admin:create`.
 
 ## Arbeidsmåte
