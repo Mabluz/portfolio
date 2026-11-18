@@ -25,9 +25,11 @@ export default async function HomePage() {
     };
   };
 
-  const big = projects.filter((p) => p.type === "BIG");
-  const small = projects.filter((p) => p.type === "SMALL");
+  // The featured project is only shown in the hero; it returns to its list when another is chosen.
   const current = projects.find((p) => p.id === settings.currentProjectId);
+  const listed = projects.filter((p) => p.id !== current?.id);
+  const big = listed.filter((p) => p.type === "BIG");
+  const small = listed.filter((p) => p.type === "SMALL");
   const hasCv = Boolean(settings.cvPath);
   const photo = imageUrl(settings.photoPath);
   const contacts: [string, string][] = [
@@ -65,7 +67,8 @@ export default async function HomePage() {
               t={t}
               slug={current.slug}
               title={text(current).title}
-              text={pick(lang, settings.nowTextNo, settings.nowTextEn)}
+              text={text(current).tagline}
+              progress={current.progress}
               image={imageUrl(current.images[0]?.path)}
               tags={text(current).tags}
             />

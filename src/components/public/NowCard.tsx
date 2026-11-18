@@ -1,11 +1,14 @@
 import Link from "next/link";
 import { LaptopFrame } from "@/components/ui/LaptopFrame";
 import { ArrowRight } from "@/components/ui/Icons";
-import type { Dict } from "@/lib/i18n";
+import { heroTexts, type Dict, type Progress } from "@/lib/i18n";
 
-type Props = { t: Dict; slug: string; title: string; text: string; image: string | null; tags: string[] };
+type Props = { t: Dict; slug: string; title: string; text: string; image: string | null; tags: string[]; progress: Progress };
 
-export function NowCard({ t, slug, title, text, image, tags }: Props) {
+/** The featured project in the hero. Label, badge and link text follow the project's status. */
+export function NowCard({ t, slug, title, text, image, tags, progress }: Props) {
+  const { label, badge, cta } = heroTexts(t, progress);
+  const building = progress === "IN_PROGRESS";
   return (
     <Link
       href={`/prosjekter/${slug}`}
@@ -16,8 +19,8 @@ export function NowCard({ t, slug, title, text, image, tags }: Props) {
       </div>
       <div className="px-7 pt-6 pb-7">
         <div className="mb-3 flex items-center gap-2.5">
-          <span className="pulse-dot" aria-hidden="true" />
-          <span className="font-mono text-xs font-medium tracking-[0.1em] uppercase">{t.nowLabel}</span>
+          {building ? <span className="pulse-dot" aria-hidden="true" /> : <span aria-hidden="true" className={`h-2.5 w-2.5 shrink-0 rounded-full ${progress === "LIVE" ? "bg-[#2f8a5b]" : "bg-[#8a8370]"}`} />}
+          <span className="font-mono text-xs font-medium tracking-[0.1em] uppercase">{label}</span>
         </div>
         <p className="font-serif m-0 mb-2 text-4xl leading-[1.1] font-medium">{title}</p>
         {text && <p className="m-0 mb-5 text-[17px] leading-relaxed text-[#3f3a2c]">{text}</p>}
@@ -28,13 +31,13 @@ export function NowCard({ t, slug, title, text, image, tags }: Props) {
             ))}
           </div>
           <span className="inline-flex items-center gap-1.5 text-sm font-semibold whitespace-nowrap">
-            {t.nowCta}
+            {cta}
             <ArrowRight className="transition-transform group-hover:translate-x-1" />
           </span>
         </div>
       </div>
       <span aria-hidden="true" className="font-serif absolute -top-[30px] -right-[26px] box-border flex h-[92px] w-[92px] rotate-12 items-center justify-center rounded-full border-[1.5px] border-ink bg-gold p-2.5 text-center text-[19px] leading-[1.05] font-semibold italic">
-        {t.nowBadge}
+        {badge}
       </span>
     </Link>
   );

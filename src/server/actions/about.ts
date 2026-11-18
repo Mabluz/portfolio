@@ -15,15 +15,10 @@ export async function saveAbout(raw: unknown): Promise<ActionResult> {
   await requireAdmin();
   const parsed = aboutSchema.safeParse(raw);
   if (!parsed.success) return { ok: false, error: parsed.error.issues[0]?.message ?? "Ugyldige data" };
-  const { currentProjectId, ...rest } = parsed.data;
-  if (currentProjectId !== null) {
-    const exists = await db.project.findUnique({ where: { id: currentProjectId }, select: { id: true } });
-    if (!exists) return { ok: false, error: "Prosjektet finnes ikke" };
-  }
   await db.siteSettings.upsert({
     where: { id: 1 },
-    update: { ...rest, currentProjectId },
-    create: { id: 1, ...rest, currentProjectId },
+    update: parsed.data,
+    create: { id: 1, ...parsed.data },
   });
   revalidateSite();
   return { ok: true };

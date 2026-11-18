@@ -6,7 +6,7 @@ import { LaptopFrame } from "@/components/ui/LaptopFrame";
 import { ArrowLeft, ArrowRight, ArrowUpRight, Github } from "@/components/ui/Icons";
 import { btnGhost, btnPrimary } from "@/components/ui/buttons";
 import { getAdmin } from "@/lib/auth";
-import { dict, getLang, pick } from "@/lib/i18n";
+import { dict, getLang, pick, progressLabel } from "@/lib/i18n";
 import { imageUrl, nextProject, projectBySlug, tr } from "@/lib/queries";
 
 const SPAN = { FULL: "md:col-span-6", HALF: "md:col-span-3", THIRD: "md:col-span-2" } as const;
@@ -45,7 +45,7 @@ export default async function ProjectPage({ params }: PageProps<"/prosjekter/[sl
   const meta: [string, string][] = [
     [t.metaRole, txt("role")],
     [t.metaYear, project.year],
-    [t.metaStatus, project.progress === "LIVE" ? t.statusLive : t.statusInProgress],
+    [t.metaStatus, progressLabel(t, project.progress)],
     [t.metaType, project.type === "BIG" ? t.typeBig : t.typeSmall],
   ];
   const visibleMeta = meta.filter(([, v]) => v);

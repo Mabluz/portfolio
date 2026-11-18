@@ -13,7 +13,7 @@ type Lesson = { headNo: string; bodyNo: string; headEn: string; bodyEn: string }
 export type TechOption = { id: number; name: string; abbr: string; roleNo: string; roleEn: string };
 
 export type EditorData = {
-  id: number; slug: string; type: "BIG" | "SMALL"; status: "DRAFT" | "PUBLISHED" | "HIDDEN"; progress: "LIVE" | "IN_PROGRESS";
+  id: number; slug: string; type: "BIG" | "SMALL"; status: "DRAFT" | "PUBLISHED" | "HIDDEN"; progress: "LIVE" | "IN_PROGRESS" | "ABANDONED" | "DISCONTINUED";
   year: string; liveUrl: string; githubUrl: string; translations: { no: Tr; en: Tr };
   images: EditorImage[]; techs: TechRow[]; lessons: Lesson[];
 };
@@ -231,7 +231,7 @@ export function ProjectEditor({ initial, allTechs }: { initial: EditorData; allT
             </Field>
             <Field label="Fremdrift" id="f-progress">
               <select id="f-progress" className={input} value={data.progress} onChange={(e) => change({ progress: e.target.value as EditorData["progress"] })}>
-                <option value="LIVE">Live</option><option value="IN_PROGRESS">Pågår</option>
+                <option value="IN_PROGRESS">Pågår</option><option value="LIVE">Live</option><option value="ABANDONED">Gitt opp</option><option value="DISCONTINUED">Lagt ned</option>
               </select>
             </Field>
             <div className="grid grid-cols-2 gap-3">

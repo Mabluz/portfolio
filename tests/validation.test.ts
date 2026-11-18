@@ -9,6 +9,10 @@ const base = {
 
 describe("projectSchema", () => {
   it("accepts a valid draft", () => expect(projectSchema.safeParse(base).success).toBe(true));
+  it("accepts every progress value and nothing else", () => {
+    for (const progress of ["LIVE", "IN_PROGRESS", "ABANDONED", "DISCONTINUED"]) expect(projectSchema.safeParse({ ...base, progress }).success).toBe(true);
+    expect(projectSchema.safeParse({ ...base, progress: "DONE" }).success).toBe(false);
+  });
   it("rejects bad slugs", () => {
     for (const slug of ["Mitt Prosjekt", "-a", "a--b", "æøå", ""]) expect(projectSchema.safeParse({ ...base, slug }).success, slug).toBe(false);
   });
@@ -25,7 +29,7 @@ describe("projectSchema", () => {
 });
 
 describe("aboutSchema", () => {
-  const ok = { currentProjectId: null, nowTextNo: "", nowTextEn: "", aboutLeadNo: "", aboutLeadEn: "", aboutBodyNo: "", aboutBodyEn: "", email: "", githubUrl: "", linkedinUrl: "", tools: [] };
+  const ok = { aboutLeadNo: "", aboutLeadEn: "", aboutBodyNo: "", aboutBodyEn: "", email: "", githubUrl: "", linkedinUrl: "", tools: [] };
   it("accepts empty values", () => expect(aboutSchema.safeParse(ok).success).toBe(true));
   it("validates the email", () => {
     expect(aboutSchema.safeParse({ ...ok, email: "nope" }).success).toBe(false);

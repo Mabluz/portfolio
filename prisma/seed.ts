@@ -30,7 +30,8 @@ async function main() {
         slug: type === "BIG" ? `prosjekt-${n}` : `smaprosjekt-${n}`,
         type,
         status: "PUBLISHED",
-        progress: "LIVE",
+        // The first big project is featured in the hero, so it is the one in progress
+        progress: type === "BIG" && n === 1 ? "IN_PROGRESS" : "LIVE",
         year: "2026",
         sortOrder: order,
         liveUrl: type === "BIG" ? "https://example.com" : null,
@@ -77,8 +78,6 @@ async function main() {
     create: {
       id: 1,
       currentProjectId: big[0].id,
-      nowTextNo: "[Én linje om hva du bygger nå]",
-      nowTextEn: "[One line about what you are building now]",
       aboutLeadNo: "Utvikler på dagtid, hobbyprogrammerer på kveldstid.",
       aboutLeadEn: "Developer by day, hobby programmer by night.",
       aboutBodyNo: "[Et par avsnitt om deg: hva du jobber med, hva som driver deg, og hva du liker å bygge på fritiden]",

@@ -5,12 +5,10 @@ import { Plus, X } from "@/components/ui/Icons";
 import { removeCv, saveAbout, uploadCv, uploadPhoto } from "@/server/actions/about";
 
 export type AboutData = {
-  currentProjectId: number | null; nowTextNo: string; nowTextEn: string;
   aboutLeadNo: string; aboutLeadEn: string; aboutBodyNo: string; aboutBodyEn: string;
   email: string; githubUrl: string; linkedinUrl: string; tools: string[];
   photoPath: string | null; cvPath: string | null; cvUpdated: string | null;
 };
-export type ProjectOption = { id: number; title: string; published: boolean };
 
 const card = "rounded-2xl border border-admin-line bg-paper p-6";
 const input = "box-border min-h-11 w-full rounded-[10px] border border-line bg-white px-3.5 py-[11px] text-[15px] text-ink focus:border-forest focus:outline-2 focus:outline-offset-1 focus:outline-forest";
@@ -21,7 +19,7 @@ function Field({ label, id, children }: { label: string; id: string; children: R
   return <div className="mb-[18px] flex flex-col gap-1.5"><label htmlFor={id} className="text-sm font-semibold">{label}</label>{children}</div>;
 }
 
-export function AboutForm({ initial, projects }: { initial: AboutData; projects: ProjectOption[] }) {
+export function AboutForm({ initial }: { initial: AboutData }) {
   const [d, setD] = useState(initial);
   const [dirty, setDirty] = useState(false);
   const [msg, setMsg] = useState<{ kind: "ok" | "error"; text: string } | null>(null);
@@ -33,7 +31,6 @@ export function AboutForm({ initial, projects }: { initial: AboutData; projects:
   function save() {
     startSave(async () => {
       const res = await saveAbout({
-        currentProjectId: d.currentProjectId, nowTextNo: d.nowTextNo, nowTextEn: d.nowTextEn,
         aboutLeadNo: d.aboutLeadNo, aboutLeadEn: d.aboutLeadEn, aboutBodyNo: d.aboutBodyNo, aboutBodyEn: d.aboutBodyEn,
         email: d.email, githubUrl: d.githubUrl, linkedinUrl: d.linkedinUrl, tools: d.tools,
       });
@@ -80,21 +77,6 @@ export function AboutForm({ initial, projects }: { initial: AboutData; projects:
       {msg?.kind === "error" && <p role="alert" className="mb-4 rounded-[10px] bg-[#f6e7e4] px-4 py-3 text-sm text-[#8e2f2f]">{msg.text}</p>}
 
       <div className="flex flex-col gap-6">
-        <section className={card}>
-          <h2 className="m-0 mb-1 text-[17px] font-semibold">«Akkurat nå bygger jeg»</h2>
-          <p className="mt-0 mb-5 text-sm text-muted-2">Kortet øverst til høyre på forsiden. Velg ingen for å skjule det.</p>
-          <Field label="Prosjekt" id="f-current">
-            <select id="f-current" className={input} value={d.currentProjectId ?? ""} onChange={(e) => set({ currentProjectId: e.target.value ? Number(e.target.value) : null })}>
-              <option value="">Ingen (skjul kortet)</option>
-              {projects.map((p) => <option key={p.id} value={p.id}>{p.title}{p.published ? "" : " (ikke publisert)"}</option>)}
-            </select>
-          </Field>
-          <div className="grid gap-4 md:grid-cols-2">
-            <Field label="Én linje (norsk)" id="f-now-no"><input id="f-now-no" className={input} value={d.nowTextNo} onChange={(e) => set({ nowTextNo: e.target.value })} /></Field>
-            <Field label="One line (English)" id="f-now-en"><input id="f-now-en" className={input} value={d.nowTextEn} onChange={(e) => set({ nowTextEn: e.target.value })} /></Field>
-          </div>
-        </section>
-
         <section className={card}>
           <h2 className="m-0 mb-5 text-[17px] font-semibold">Om meg</h2>
           <div className="mb-[18px] flex items-center gap-5">

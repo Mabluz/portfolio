@@ -25,7 +25,7 @@ export default async function AdminHome() {
     const en = p.translations.find((t) => t.locale === "en");
     const n = p._count.images;
     return {
-      id: p.id, slug: p.slug, type: p.type, status: p.status,
+      id: p.id, slug: p.slug, type: p.type, status: p.status, progress: p.progress,
       title: no?.title || "(uten tittel)",
       sub: `${n} ${n === 1 ? "bilde" : "bilder"}${p.techs.length ? " · " + p.techs.slice(0, 3).map((t) => t.tech.name).join(", ") : ""}`,
       langs: en?.title ? "NO · EN" : "NO",
@@ -62,12 +62,12 @@ export default async function AdminHome() {
           </div>
         ))}
       </div>
-      <ProjectTable initial={rows} />
+      <ProjectTable initial={rows} initialHeroId={settings?.currentProjectId ?? null} />
       <div className="mt-6 grid gap-4 md:grid-cols-2">
         <div className="flex items-center gap-[18px] rounded-2xl border border-admin-line bg-paper px-6 py-[22px]">
           <div className="min-w-0 flex-1">
             <p className="m-0 font-semibold">Forside, om meg og CV</p>
-            <p className="mt-0.5 mb-0 text-sm text-muted-2">Tekst, bilde, verktøy, kontaktlenker og «Akkurat nå»-kortet</p>
+            <p className="mt-0.5 mb-0 text-sm text-muted-2">Tekst, bilde, verktøy og kontaktlenker</p>
           </div>
           <Link href="/admin/om-meg" className="inline-flex min-h-11 items-center rounded-[10px] border border-line bg-paper px-[18px] text-sm font-semibold text-ink no-underline hover:border-ink">Rediger</Link>
         </div>

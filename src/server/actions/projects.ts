@@ -89,7 +89,21 @@ export async function reorderProjects(ids: number[]): Promise<ActionResult> {
   return { ok: true };
 }
 
-export type UploadedImage = { id: number; path: string; width: number; height: number };
+/** Chooses the project shown in the hero card on the front page, or none (null). */
+export async function setHeroProject(id: number | null): Promise<ActionResult> {
+  await requireAdmin();
+  if (id !== null && !Number.isInteger(id)) return { ok: false, error: "Ugyldig prosjekt" };
+  if (id !== null) {
+    const exists = await db.project.findUnique({ where: { id }, select: { id: true } });
+    if (!exists) return { ok: false, error: "Prosjektet finnes ikke" };
+  }
+  await db.siteSettings.upsert({ where: { id: 1 }, update: { currentProjectId: id }, create: { id: 1, currentProjectId: id } });
+  revalidateSite();
+  revalidatePath("/admin");
+  return { ok: true };
+}
+
+export type UploadedImage ={ id: number; path: string; width: number; height: number };
 
 /**
  * Saves the images one by one. If one fails, the ones already saved are still returned along with

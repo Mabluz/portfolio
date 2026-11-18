@@ -21,7 +21,7 @@ export const projectSchema = z
     slug: z.string().trim().toLowerCase().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "Adressen kan bare ha a-z, tall og bindestrek").max(80),
     type: z.enum(["BIG", "SMALL"]),
     status: z.enum(["DRAFT", "PUBLISHED", "HIDDEN"]),
-    progress: z.enum(["LIVE", "IN_PROGRESS"]),
+    progress: z.enum(["LIVE", "IN_PROGRESS", "ABANDONED", "DISCONTINUED"]),
     year: text(20),
     liveUrl: optionalUrl,
     githubUrl: optionalUrl,
@@ -48,9 +48,6 @@ export const techSchema = z.object({
 });
 
 export const aboutSchema = z.object({
-  currentProjectId: z.number().int().nullable(),
-  nowTextNo: text(200),
-  nowTextEn: text(200),
   aboutLeadNo: text(300),
   aboutLeadEn: text(300),
   aboutBodyNo: text(6000),

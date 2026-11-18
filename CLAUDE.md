@@ -28,7 +28,7 @@ pnpm typecheck && pnpm lint && pnpm test
 ## Arkitektur
 
 - `src/app/(public)`: forside og `/prosjekter/[slug]`. Alle prosjekter, også små, har en detaljside. Tomme seksjoner skjules.
-- `src/app/admin`: `login` og `(protected)` (oversikt med dra-og-slipp-rekkefølge, prosjekteditor, "Om meg" og CV). Admin er kun norsk. `proxy.ts` er bare en optimistisk redirect; ekte sjekk er `requireAdmin()`, som **må** kalles i hver admin-action og layout.
+- `src/app/admin`: `login` og `(protected)` (oversikt med dra-og-slipp-rekkefølge og valg av forsideprosjekt, prosjekteditor, "Om meg" og CV). Admin er kun norsk. `proxy.ts` er bare en optimistisk redirect; ekte sjekk er `requireAdmin()`, som **må** kalles i hver admin-action og layout.
 - `src/server/actions/`: Server Actions (`projects`, `about`, `auth`, `lang`). All mutasjon går her.
 - `src/lib/`: `db` (Prisma + pg-adapter), `auth` (økter, throttle), `i18n` (`dict`, `getLang`, `pick`), `queries`, `uploads`, `validation` (zod), `slug`.
 - `uploads/[...path]` og `cv` er route handlers som leverer filer fra `UPLOAD_DIR` (standalone-build kan ikke servere runtime-filer fra `public/`). `api/health` brukes av Docker HEALTHCHECK.
@@ -40,7 +40,8 @@ pnpm typecheck && pnpm lint && pnpm test
 - **Opplastinger**: bilder konverteres med sharp til WebP (maks 2400 px, 15 MB inn), PDF sjekkes på `%PDF-` (maks 10 MB). Lagres på disk under `UPLOAD_DIR` (Docker-volum). Path traversal er blokkert i `resolveUploadPath`.
 - **Server Actions**: body-grense er satt til 20 MB i `next.config.ts`. Origin sjekkes mot forwarded host, så reverse proxy må sende `X-Forwarded-Host`. Innloggingsgrensen bruker `X-Real-IP` (nginx: `$remote_addr`), ellers siste verdi i `X-Forwarded-For`; aldri den første, den styres av klienten.
 - Dynamiske sider: `cacheComponents` og `partialPrefetching` er bevisst skrudd av.
-- **Datamodell** (`prisma/schema.prisma`): Project (BIG/SMALL, DRAFT/PUBLISHED/HIDDEN, LIVE/IN_PROGRESS), ProjectTranslation, ProjectImage (første bilde er hovedbilde og alltid full bredde), Tech + ProjectTech (delt liste med begrunnelse per prosjekt), Lesson, SiteSettings (singleton id=1), AdminUser, Session.
+- **Datamodell** (`prisma/schema.prisma`): Project (BIG/SMALL, DRAFT/PUBLISHED/HIDDEN, fremdrift LIVE/IN_PROGRESS/ABANDONED/DISCONTINUED), ProjectTranslation, ProjectImage (første bilde er hovedbilde og alltid full bredde), Tech + ProjectTech (delt liste med begrunnelse per prosjekt), Lesson, SiteSettings (singleton id=1), AdminUser, Session.
+- **Forsideprosjekt**: `SiteSettings.currentProjectId`, valgt med radioknapper på admin-oversikten (`setHeroProject`). Vises bare hvis publisert, og skjules da fra listene under. Kortets tekster følger fremdriften (`heroTexts` i `i18n.ts`), og beskrivelsen er prosjektets tagline. `nowTextNo`/`nowTextEn` er utgått og ubrukt; fjern kolonnene i en senere deploy.
 - Skrive migrasjoner med `pnpm db:migrate`; produksjon kjører `prisma migrate deploy` ved oppstart (se `docker-entrypoint.sh`). Migrasjoner må være bakoverkompatible med forrige versjon (expand/contract), fordi automatisk tilbakerulling i `deploy.sh` ikke reverserer dem. Gi nytt navn til eller fjern kolonner over to deployer.
 
 ## Deploy
@@ -51,7 +52,7 @@ Speiler `../zellstrikka`: GitHub Actions (`ci.yml`, `deploy.yml`) kopierer bygge
 
 ## Status og kjente hull
 
-- Verifisert: typecheck, lint, 57 tester, produksjonsbygg, Docker-image, innlogging, prosjektredigering og bildeopplasting.
+- Verifisert: typecheck, lint, 61 tester, produksjonsbygg, Docker-image, innlogging, prosjektredigering og bildeopplasting.
 - Ikke testet manuelt: dra-og-slipp-rekkefølge, opprette og slette prosjekt, "Om meg"-siden, CV-opplasting, mobilvisning i admin, GitHub Actions-workflowene.
 - Lokal dev-admin finnes i dev-databasen. Innloggingen står i `CLAUDE.local.md` (gitignored); opprett eller nullstill med `pnpm admin:create`.
 
