@@ -15,7 +15,7 @@ export const metadata: Metadata = {
 export default async function RootLayout({ children }: LayoutProps<"/">) {
   const lang = await getLang();
   return (
-    <html lang={lang} className={`${bricolage.variable} ${inter.variable} ${jetbrains.variable} antialiased`}>
+    <html lang={lang} data-scroll-behavior="smooth" className={`${bricolage.variable} ${inter.variable} ${jetbrains.variable} antialiased`}>
       <body className="min-h-screen">{children}</body>
     </html>
   );

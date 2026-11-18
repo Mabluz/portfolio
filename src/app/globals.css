@@ -24,6 +24,12 @@
   --breakpoint-md: 900px;
 }
 
+/* Anchor links like "Se prosjektene" glide instead of jumping. Route changes still jump
+   to the top, because the root layout sets data-scroll-behavior="smooth" (Next 16). */
+html {
+  scroll-behavior: smooth;
+}
+
 body {
   margin: 0;
   background: var(--color-sand);
@@ -43,6 +49,7 @@ body {
 .pulse-dot { position: relative; width: 10px; height: 10px; border-radius: 9999px; background: #2f8a5b; flex-shrink: 0; }
 .pulse-dot::after { content: ""; position: absolute; inset: -5px; border-radius: 9999px; border: 2px solid #2f8a5b; animation: pulse-ring 1.8s ease-out infinite; }
 @media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
   .pulse-dot::after { animation: none; }
   * { transition: none !important; }
 }
