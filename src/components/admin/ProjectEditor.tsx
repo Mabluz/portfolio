@@ -36,6 +36,8 @@ function Field({ label, id, help, children }: { label: string; id: string; help?
 
 export function ProjectEditor({ initial, allTechs }: { initial: EditorData; allTechs: TechOption[] }) {
   const [data, setData] = useState(initial);
+  // The slug in the database; the preview must link here, not to an unsaved edit of it.
+  const [savedSlug, setSavedSlug] = useState(initial.slug);
   const [lang, setLang] = useState<Lang>("no");
   const [techOptions, setTechOptions] = useState(allTechs);
   const [dirty, setDirty] = useState(false);
@@ -84,6 +86,7 @@ export function ProjectEditor({ initial, allTechs }: { initial: EditorData; allT
       const res = await saveProject(data.id, payload);
       if (res.ok) {
         setData((d) => ({ ...d, status, githubUrl: payload.githubUrl }));
+        setSavedSlug(payload.slug);
         setDirty(false);
         setMessage({ kind: "ok", text: status === "PUBLISHED" && data.status !== "PUBLISHED" ? "Publisert" : "Lagret" });
       } else {
@@ -116,7 +119,7 @@ export function ProjectEditor({ initial, allTechs }: { initial: EditorData; allT
           {!dirty && message?.kind === "ok" && <span role="status" className="rounded-full bg-[#dcebe2] px-2.5 py-1 text-[13px] text-forest">{message.text}</span>}
         </div>
         <div className="flex flex-wrap gap-2.5">
-          <Link href={`/prosjekter/${data.slug}`} target="_blank" className={btnGhost}><Eye size={16} />Forhåndsvis</Link>
+          <Link href={`/prosjekter/${savedSlug}`} target="_blank" className={btnGhost} title={dirty ? "Viser sist lagrede versjon" : undefined}><Eye size={16} />Forhåndsvis</Link>
           <button type="button" className={btnGhost} disabled={saving} onClick={() => save(data.status)}>{saving ? "Lagrer…" : saveLabel}</button>
           {data.status !== "PUBLISHED" && <button type="button" className={btnPrimary} disabled={saving} onClick={() => save("PUBLISHED")}>Publiser</button>}
         </div>
