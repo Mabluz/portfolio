@@ -7,19 +7,23 @@ services:
     container_name: portfolio
     restart: unless-stopped
     env_file: .env
-    ports:
-      # Only reachable from the host; the web server proxies the domain to this port.
-      - "127.0.0.1:3100:3100"
+    # No published ports: the nginx container reaches the app as portfolio:3100 over the web
+    # network. Every container on these networks can reach the app directly and set X-Real-IP
+    # itself, so keep only trusted containers on them.
     volumes:
       - portfolio_uploads:/app/uploads
     networks:
-      - default
+      - web
       - shared-db
 
 volumes:
   portfolio_uploads:
 
 networks:
+  # The Docker network the nginx container is on. Proxy the domain to http://portfolio:3100.
+  web:
+    external: true
+    name: CHANGE_ME_web_network
   # The Docker network the shared PostgreSQL container is on. Use its name here, and use the
   # Postgres container name as the host in DATABASE_URL, e.g.
   # postgresql://portfolio:PASSWORD@shared-postgres:5432/portfolio

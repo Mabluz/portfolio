@@ -52,7 +52,7 @@ Same flow as the zellstrikka project: a push to `main` runs CI (`.github/workflo
    CREATE DATABASE portfolio OWNER portfolio;
    ```
 2. **Folder** `PORTFOLIO_PATH` with:
-   - `docker-compose.yml` - start from `docker-compose.prod.example.yml` and set the name of the Docker network the shared Postgres is on.
+   - `docker-compose.yml` - start from `docker-compose.prod.example.yml` and set the names of the Docker networks the web server (nginx) and the shared Postgres are on.
    - `.env` - start from `.env.example`; set `DATABASE_URL` to the shared Postgres (use its container name as host when on the same Docker network) and keep `UPLOAD_DIR=/app/uploads`.
    CI never overwrites these two files.
 3. Push to `main` (or run the workflow manually). The container applies pending migrations on every start (`prisma migrate deploy`).
@@ -65,10 +65,11 @@ Same flow as the zellstrikka project: a push to `main` runs CI (`.github/workflo
 
 ### Reverse proxy requirements
 
-The container listens on `127.0.0.1:3100`. Your web server should proxy the domain to it and:
+The container publishes no ports. Your web server (nginx in a container on the same Docker network) should proxy the domain to `http://portfolio:3100` and:
 
 - forward `Host`/`X-Forwarded-Host` (Server Actions reject requests whose `Origin` doesn't match the forwarded host);
-- set `X-Real-IP` to the real client address (nginx: `proxy_set_header X-Real-IP $remote_addr;`). The login throttle and the API keys' IP whitelists use it, and fall back to the *last* `X-Forwarded-For` entry. Never let a client-supplied `X-Real-IP` pass through, or a whitelist can be bypassed. A key with a whitelist rejects requests when no client IP is known;
+- set `X-Real-IP` to the real client address (nginx: `proxy_set_header X-Real-IP $remote_addr;`). `proxy_set_header` replaces any `X-Real-IP` the client sends. The login throttle and the API keys' IP whitelists use it. The login throttle falls back to the *last* `X-Forwarded-For` entry (never the first, which the client controls); in production a key with a whitelist has no fallback and rejects requests without `X-Real-IP`;
+- keep untrusted containers off the app's Docker networks: anything there can reach `portfolio:3100` directly and set `X-Real-IP` itself;
 - allow request bodies of at least **20 MB** (e.g. nginx `client_max_body_size 20m;`), since images are uploaded through Server Actions.
 
 ### Rollback

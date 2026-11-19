@@ -51,7 +51,7 @@ pnpm typecheck && pnpm lint && pnpm test
 
 Speiler `../zellstrikka`: GitHub Actions (`ci.yml`, `deploy.yml`) kopierer byggekonteksten med scp til serveren, og `scripts/deploy.sh` bygger imaget, sjekker `/api/health`, ruller tilbake automatisk ved feil og beholder 5 image-tagger. Secrets: `SSH_HOST`, `SSH_USER`, `SSH_PRIVATE_KEY`, `PORTFOLIO_PATH`.
 
-`docker-compose.yml` og `.env` ligger kun på serveren (repoet har `docker-compose.prod.example.yml` og `.env.example`). Produksjon bruker delt Postgres via `DATABASE_URL`, og containeren publiserer ingen porter: nginx når den som `portfolio:3100` over Docker-nettverket `webnet` (den er også på `postgresnet`). Andre containere på de nettverkene kan nå appen direkte og sette `X-Real-IP` selv. nginx setter `X-Real-IP $remote_addr` og `X-Forwarded-For $proxy_add_x_forwarded_for`. Eksempelfilen viser i stedet en port bundet til 127.0.0.1. Nginx konfigureres av eieren selv. Admin opprettes på serveren med `docker compose exec portfolio node scripts/admin-create.mjs`.
+`docker-compose.yml` og `.env` ligger kun på serveren (repoet har `docker-compose.prod.example.yml` og `.env.example`). Produksjon bruker delt Postgres via `DATABASE_URL`, og containeren publiserer ingen porter: nginx når den som `portfolio:3100` over Docker-nettverket `webnet` (den er også på `postgresnet`). Andre containere på de nettverkene kan nå appen direkte og sette `X-Real-IP` selv. nginx setter `X-Real-IP $remote_addr` og `X-Forwarded-For $proxy_add_x_forwarded_for`. Eksempelfilen viser samme oppsett med plassholdere for nettverksnavnene. Nginx konfigureres av eieren selv. Admin opprettes på serveren med `docker compose exec portfolio node scripts/admin-create.mjs`.
 
 ## Status og kjente hull
 
