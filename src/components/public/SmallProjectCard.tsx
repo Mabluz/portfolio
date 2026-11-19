@@ -1,16 +1,21 @@
 import Link from "next/link";
 import { ArrowUpRight } from "@/components/ui/Icons";
+import type { Progress } from "@/lib/i18n";
+import { StatusPill } from "./StatusLamp";
 
-type Props = { num: number; slug: string; title: string; desc: string; tags: string[] };
+type Props = { num: number; slug: string; title: string; desc: string; tags: string[]; progress: Progress; statusLabel: string };
 
-export function SmallProjectCard({ num, slug, title, desc, tags }: Props) {
+export function SmallProjectCard({ num, slug, title, desc, tags, progress, statusLabel }: Props) {
   return (
     <Link
       href={`/prosjekter/${slug}`}
       className="flex min-h-[200px] flex-col gap-3.5 rounded-2xl bg-sage p-[26px] text-ink no-underline transition-all duration-200 hover:-translate-y-[3px] hover:-rotate-[1.2deg] hover:shadow-[6px_6px_0_#B07F1A]"
     >
       <div className="flex items-center justify-between">
-        <span className="font-mono text-xs text-forest">#{String(num).padStart(2, "0")}</span>
+        <span className="flex items-center gap-2.5">
+          <span className="font-mono text-xs text-forest">#{String(num).padStart(2, "0")}</span>
+          <StatusPill progress={progress} label={statusLabel} />
+        </span>
         <ArrowUpRight size={18} className="text-forest" />
       </div>
       <h3 className="font-serif m-0 text-[26px] leading-[1.15] font-medium">{title}</h3>

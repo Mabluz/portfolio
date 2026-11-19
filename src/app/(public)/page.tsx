@@ -6,7 +6,7 @@ import { SmallProjectCard } from "@/components/public/SmallProjectCard";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import { ArrowDown, Download, Mail } from "@/components/ui/Icons";
 import { btnGhost, btnGold, btnPrimary } from "@/components/ui/buttons";
-import { dict, getLang, pick } from "@/lib/i18n";
+import { dict, getLang, pick, progressLabel } from "@/lib/i18n";
 import { getSettings, imageUrl, publishedProjects, tr } from "@/lib/queries";
 
 export default async function HomePage() {
@@ -87,7 +87,7 @@ export default async function HomePage() {
                 <BigProjectRow
                   key={p.id} t={t} index={i} slug={p.slug} year={p.year} title={x.title} desc={x.tagline}
                   why={x.why} learned={x.learned} tags={x.tags} image={imageUrl(p.images[0]?.path)}
-                  liveUrl={p.liveUrl} githubUrl={p.githubUrl}
+                  liveUrl={p.liveUrl} githubUrl={p.githubUrl} progress={p.progress}
                 />
               );
             })}
@@ -104,7 +104,7 @@ export default async function HomePage() {
                 const x = text(p);
                 return (
                   <Reveal key={p.id} delay={(i % 3) * 100} className="flex [&>*]:flex-1">
-                    <SmallProjectCard num={i + 1} slug={p.slug} title={x.title} desc={x.tagline} tags={x.tags.slice(0, 2)} />
+                    <SmallProjectCard num={i + 1} slug={p.slug} title={x.title} desc={x.tagline} tags={x.tags.slice(0, 2)} progress={p.progress} statusLabel={progressLabel(t, p.progress)} />
                   </Reveal>
                 );
               })}

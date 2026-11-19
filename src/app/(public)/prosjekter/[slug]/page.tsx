@@ -8,6 +8,7 @@ import { ArrowLeft, ArrowRight, ArrowUpRight, Github } from "@/components/ui/Ico
 import { btnGhost, btnPrimary } from "@/components/ui/buttons";
 import { getAdmin } from "@/lib/auth";
 import { dict, getLang, pick, progressLabel } from "@/lib/i18n";
+import { StatusLamp } from "@/components/public/StatusLamp";
 import { imageUrl, nextProject, projectBySlug, tr } from "@/lib/queries";
 
 const SPAN = { FULL: "md:col-span-6", HALF: "md:col-span-3", THIRD: "md:col-span-2" } as const;
@@ -89,7 +90,10 @@ export default async function ProjectPage({ params }: PageProps<"/prosjekter/[sl
             {visibleMeta.map(([label, value]) => (
               <div key={label} className="py-[22px] pr-5">
                 <dt className="mb-2 font-mono text-xs tracking-[0.08em] text-forest uppercase">{label}</dt>
-                <dd className="m-0 text-[17px] font-medium">{value}</dd>
+                <dd className="m-0 flex items-center gap-2.5 text-[17px] font-medium">
+                  {label === t.metaStatus && <StatusLamp progress={project.progress} />}
+                  {value}
+                </dd>
               </div>
             ))}
           </dl>
