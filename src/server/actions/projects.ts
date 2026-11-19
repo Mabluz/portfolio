@@ -5,25 +5,14 @@ import { requireAdmin } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { deleteUpload, saveImage } from "@/lib/uploads";
 import { projectSchema, techSchema } from "@/lib/validation";
+import { createDraftProject, revalidateSite, writeHeroProject, writeProject } from "@/server/project-service";
 
 export type ActionResult<T = object> = ({ ok: true } & T) | { ok: false; error: string };
-
-const revalidateSite = () => revalidatePath("/", "layout");
 
 /** Creates an empty draft right away so images can be uploaded against a real id. */
 export async function createProject() {
   await requireAdmin();
-  const last = await db.project.aggregate({ _max: { sortOrder: true } });
-  let slug = "nytt-prosjekt";
-  for (let i = 2; await db.project.findUnique({ where: { slug } }); i++) slug = `nytt-prosjekt-${i}`;
-  const project = await db.project.create({
-    data: {
-      slug,
-      sortOrder: (last._max.sortOrder ?? 0) + 1,
-      translations: { create: [{ locale: "no", title: "Nytt prosjekt" }, { locale: "en" }] },
-    },
-  });
-  revalidatePath("/admin");
+  const project = await createDraftProject();
   redirect(`/admin/prosjekter/${project.id}`);
 }
 
@@ -33,42 +22,7 @@ export async function saveProject(id: number, raw: unknown): Promise<ActionResul
   if (!parsed.success) {
     return { ok: false, error: parsed.error.issues[0]?.message ?? "Ugyldige data" };
   }
-  const v = parsed.data;
-
-  const clash = await db.project.findFirst({ where: { slug: v.slug, NOT: { id } }, select: { id: true } });
-  if (clash) return { ok: false, error: "Adressen brukes av et annet prosjekt" };
-
-  const techIds = new Set(v.techs.map((t) => t.techId));
-  if (techIds.size !== v.techs.length) return { ok: false, error: "Samme teknologi er lagt til flere ganger" };
-
-  await db.$transaction(async (tx) => {
-    await tx.project.update({
-      where: { id },
-      data: { slug: v.slug, type: v.type, status: v.status, progress: v.progress, year: v.year, liveUrl: v.liveUrl || null, githubUrl: v.githubUrl || null },
-    });
-    for (const locale of ["no", "en"] as const) {
-      await tx.projectTranslation.upsert({
-        where: { projectId_locale: { projectId: id, locale } },
-        update: v.translations[locale],
-        create: { projectId: id, locale, ...v.translations[locale] },
-      });
-    }
-    for (const [i, img] of v.images.entries()) {
-      // updateMany with projectId guards against ids from other projects
-      await tx.projectImage.updateMany({
-        where: { id: img.id, projectId: id },
-        data: { sortOrder: i, galleryWidth: i === 0 ? "FULL" : img.galleryWidth, captionNo: img.captionNo, captionEn: img.captionEn },
-      });
-    }
-    await tx.projectTech.deleteMany({ where: { projectId: id } });
-    await tx.projectTech.createMany({ data: v.techs.map((t, i) => ({ projectId: id, techId: t.techId, sortOrder: i, whyNo: t.whyNo, whyEn: t.whyEn })) });
-    await tx.lesson.deleteMany({ where: { projectId: id } });
-    await tx.lesson.createMany({ data: v.lessons.map((l, i) => ({ projectId: id, sortOrder: i, ...l })) });
-  });
-
-  revalidateSite();
-  revalidatePath("/admin");
-  return { ok: true };
+  return writeProject(id, parsed.data);
 }
 
 export async function deleteProject(id: number) {
@@ -92,18 +46,10 @@ export async function reorderProjects(ids: number[]): Promise<ActionResult> {
 /** Chooses the project shown in the hero card on the front page, or none (null). */
 export async function setHeroProject(id: number | null): Promise<ActionResult> {
   await requireAdmin();
-  if (id !== null && !Number.isInteger(id)) return { ok: false, error: "Ugyldig prosjekt" };
-  if (id !== null) {
-    const exists = await db.project.findUnique({ where: { id }, select: { id: true } });
-    if (!exists) return { ok: false, error: "Prosjektet finnes ikke" };
-  }
-  await db.siteSettings.upsert({ where: { id: 1 }, update: { currentProjectId: id }, create: { id: 1, currentProjectId: id } });
-  revalidateSite();
-  revalidatePath("/admin");
-  return { ok: true };
+  return writeHeroProject(id);
 }
 
-export type UploadedImage ={ id: number; path: string; width: number; height: number };
+export type UploadedImage = { id: number; path: string; width: number; height: number };
 
 /**
  * Saves the images one by one. If one fails, the ones already saved are still returned along with

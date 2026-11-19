@@ -4,6 +4,7 @@ import { requireAdmin } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { deleteUpload, saveImage, savePdf } from "@/lib/uploads";
 import { aboutSchema } from "@/lib/validation";
+import { writeAbout } from "@/server/project-service";
 import type { ActionResult } from "./projects";
 
 const revalidateSite = () => {
@@ -15,12 +16,7 @@ export async function saveAbout(raw: unknown): Promise<ActionResult> {
   await requireAdmin();
   const parsed = aboutSchema.safeParse(raw);
   if (!parsed.success) return { ok: false, error: parsed.error.issues[0]?.message ?? "Ugyldige data" };
-  await db.siteSettings.upsert({
-    where: { id: 1 },
-    update: parsed.data,
-    create: { id: 1, ...parsed.data },
-  });
-  revalidateSite();
+  await writeAbout(parsed.data);
   return { ok: true };
 }
 
