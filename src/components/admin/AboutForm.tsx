@@ -26,6 +26,16 @@ export function AboutForm({ initial }: { initial: AboutData }) {
   const [toolDraft, setToolDraft] = useState("");
   const [saving, startSave] = useTransition();
   const [uploading, startUpload] = useTransition();
+  const [confirmCvDelete, setConfirmCvDelete] = useState(false);
+
+  function deleteCv() {
+    startUpload(async () => {
+      const r = await removeCv();
+      setConfirmCvDelete(false);
+      if (r.ok) { setD((x) => ({ ...x, cvPath: null, cvUpdated: null })); setMsg({ kind: "ok", text: "CV-en er slettet" }); }
+      else setMsg({ kind: "error", text: r.error });
+    });
+  }
   const set = (patch: Partial<AboutData>) => { setD((x) => ({ ...x, ...patch })); setDirty(true); setMsg(null); };
 
   function save() {
@@ -133,8 +143,19 @@ export function AboutForm({ initial }: { initial: AboutData }) {
             </p>
             <label htmlFor="f-cv" className={btnGhost}>{d.cvPath ? "Last opp ny" : "Last opp CV"}</label>
             <input id="f-cv" type="file" accept="application/pdf" className="sr-only" disabled={uploading} onChange={(e) => onCv(e.target.files?.[0])} />
-            {d.cvPath && <button type="button" className={btnGhost} onClick={() => startUpload(async () => { const r = await removeCv(); if (r.ok) setD((x) => ({ ...x, cvPath: null, cvUpdated: null })); else setMsg({ kind: "error", text: r.error }); })}>Fjern</button>}
+            {d.cvPath && !confirmCvDelete && (
+              <button type="button" disabled={uploading} className={`${btn} border border-[#c9a0a0] bg-transparent text-[#8e2f2f] hover:bg-[#f6e7e4]`} onClick={() => setConfirmCvDelete(true)}>Slett CV</button>
+            )}
           </div>
+          {d.cvPath && confirmCvDelete && (
+            <div role="alertdialog" aria-label="Bekreft sletting av CV" className="mt-4 rounded-xl bg-[#f6e7e4] p-4">
+              <p className="mt-0 mb-3 text-sm font-semibold text-[#8e2f2f]">Slette CV-en? «Last ned CV»-knappen forsvinner fra forsiden.</p>
+              <div className="flex flex-wrap gap-2.5">
+                <button type="button" disabled={uploading} className={`${btn} border-0 bg-[#8e2f2f] text-white disabled:opacity-60`} onClick={deleteCv}>{uploading ? "Sletter…" : "Ja, slett"}</button>
+                <button type="button" className={btnGhost} onClick={() => setConfirmCvDelete(false)}>Avbryt</button>
+              </div>
+            </div>
+          )}
         </section>
       </div>
     </div>
