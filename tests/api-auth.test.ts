@@ -112,6 +112,19 @@ describe("authenticateApi", () => {
     expect(await authenticateApi(headers({ "x-forwarded-for": "6.6.6.6, 5.5.5.5", authorization: `Bearer ${key}` }))).toMatchObject({ ok: true });
   });
 
+  it("requires X-Real-IP for a whitelist in production, ignoring X-Forwarded-For", async () => {
+    const key = addKey(["5.5.5.5"]);
+    vi.stubEnv("NODE_ENV", "production");
+    try {
+      expect(await authenticateApi(headers({ "x-forwarded-for": "6.6.6.6, 5.5.5.5", authorization: `Bearer ${key}` }))).toMatchObject({ ok: false, status: 403 });
+      expect(await authenticateApi(headers({ "x-real-ip": "5.5.5.5", authorization: `Bearer ${key}` }))).toMatchObject({ ok: true });
+      // Keys without a whitelist still work with the fallback
+      expect(await authenticateApi(headers({ "x-forwarded-for": "6.6.6.6", authorization: `Bearer ${addKey()}` }))).toMatchObject({ ok: true });
+    } finally {
+      vi.unstubAllEnvs();
+    }
+  });
+
   it("throttles an IP after 20 failed keys", async () => {
     const ip = freshIp();
     const now = Date.now();

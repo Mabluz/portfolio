@@ -46,9 +46,16 @@ export async function authenticateApi(headers: { get(name: string): string | nul
     return { ok: false, status: 401, error: "Ugyldig eller tilbaketrukket API-nøkkel" };
   }
 
-  // With a whitelist, an unknown client IP (proxy not sending X-Real-IP) fails closed.
-  if (key.allowedIps.length > 0 && (ip === "unknown" || !ipAllowed(ip, key.allowedIps))) {
-    return { ok: false, status: 403, error: `IP-adressen ${ip} har ikke tilgang med denne nøkkelen` };
+  if (key.allowedIps.length > 0) {
+    // In production the whitelist only trusts X-Real-IP (nginx: $remote_addr), never the
+    // X-Forwarded-For fallback, so a proxy without X-Real-IP fails closed instead of guessing.
+    if (process.env.NODE_ENV === "production" && !headers.get("x-real-ip")?.trim()) {
+      return { ok: false, status: 403, error: "IP-listen krever at proxyen sender X-Real-IP" };
+    }
+    // An unknown client IP fails closed too.
+    if (ip === "unknown" || !ipAllowed(ip, key.allowedIps)) {
+      return { ok: false, status: 403, error: `IP-adressen ${ip} har ikke tilgang med denne nøkkelen` };
+    }
   }
 
   if (!requests.reserve(`key:${key.id}`, now)) return { ok: false, status: 429, error: "For mange forespørsler. Vent litt." };
