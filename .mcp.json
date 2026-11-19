@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "portfolio": {
+      "command": "pnpm",
+      "args": ["exec", "tsx", "mcp/portfolio-mcp.mts"],
+      "env": {
+        "PORTFOLIO_API_URL": "${PORTFOLIO_API_URL}",
+        "PORTFOLIO_API_KEY": "${PORTFOLIO_API_KEY}"
+      }
+    }
+  }
+}
