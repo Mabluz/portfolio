@@ -9,6 +9,7 @@ Personal portfolio for Marius: a public site (Norwegian/English) and a small adm
 - **Public site** - front page (hero, "currently building" card, big projects, small projects, about/CV/contact) and a page per project at `/prosjekter/<slug>`. NO/EN toggle stored in a cookie (no URL change); English falls back to Norwegian when a text is empty.
 - **Admin** at `/admin` (Norwegian only) - project CRUD with image upload/ordering/gallery widths, shared tech list, lessons, drag-to-reorder, "currently building" card, about text/photo/tools/contact, CV upload.
 - **Auth** - username + password (bcrypt), DB-backed sessions in an httpOnly cookie, login throttling. The admin user is created from the command line (below); there is no sign-up page.
+- **API + MCP** - a key-protected JSON API at `/api/v1` for reading and editing projects and the about content, and an MCP server in `mcp/` so Claude can use it (see below).
 - **Uploads** - images (converted to WebP, max 2400 px) and the CV PDF are stored on disk in `UPLOAD_DIR` and served through `/uploads/...` and `/cv`.
 
 ## Local development
@@ -67,7 +68,7 @@ Same flow as the zellstrikka project: a push to `main` runs CI (`.github/workflo
 The container listens on `127.0.0.1:3100`. Your web server should proxy the domain to it and:
 
 - forward `Host`/`X-Forwarded-Host` (Server Actions reject requests whose `Origin` doesn't match the forwarded host);
-- set `X-Real-IP` to the real client address (nginx: `proxy_set_header X-Real-IP $remote_addr;`). The login throttle uses it, and falls back to the *last* `X-Forwarded-For` entry. Never let a client-supplied `X-Real-IP` pass through;
+- set `X-Real-IP` to the real client address (nginx: `proxy_set_header X-Real-IP $remote_addr;`). The login throttle and the API keys' IP whitelists use it, and fall back to the *last* `X-Forwarded-For` entry. Never let a client-supplied `X-Real-IP` pass through, or a whitelist can be bypassed. A key with a whitelist rejects requests when no client IP is known;
 - allow request bodies of at least **20 MB** (e.g. nginx `client_max_body_size 20m;`), since images are uploaded through Server Actions.
 
 ### Rollback
@@ -84,12 +85,35 @@ Migrations run on container start, before the health check. If a deploy becomes 
 - adding tables, nullable columns or columns with a default is safe;
 - to rename or remove a column, do it in two deploys: first stop using it in code, then drop it in a later migration.
 
+## API and MCP
+
+Create a key under **API-nøkler** in the admin. The key is shown once; only its sha256 is stored. Each key can have a list of allowed IPs or CIDR ranges (empty = any IP), and can be revoked. Keys don't expire.
+
+| Method | Path | |
+|---|---|---|
+| GET | `/api/v1/projects` | all projects, drafts included |
+| POST | `/api/v1/projects` | create (draft unless `status` is set) |
+| GET / PATCH | `/api/v1/projects/<id or slug>` | read / partial update, incl. publishing |
+| GET / PATCH | `/api/v1/about` | about text, contact, tools, hero project |
+| GET | `/api/v1/techs` | the shared tech list |
+
+Send `Authorization: Bearer pf_...` and JSON bodies. GET returns the same shape PATCH accepts; `no`/`en` merge per field, lists replace. Writes are validated with the same rules as the admin and logged (shown in the admin). There is no delete and no file upload over the API. Limits: 1 MB body, 120 requests per minute per key, 20 failed keys per 15 minutes per IP.
+
+**MCP:** `.mcp.json` registers `mcp/portfolio-mcp.mts` for Claude Code. Set the environment before starting Claude in the repo:
+
+```sh
+export PORTFOLIO_API_URL="https://<your domain>"   # or http://localhost:3100
+export PORTFOLIO_API_KEY="pf_..."                  # never commit it
+```
+
 ## Project layout
 
 ```
 src/app/(public)/        public pages            src/app/admin/        admin (login + protected area)
 src/components/          ui / public / admin     src/server/actions/   Server Actions (all call requireAdmin())
-src/lib/                 db, auth, i18n, uploads, validation, queries
+src/lib/                 db, auth, api-auth, i18n, uploads, validation, queries
+src/app/api/v1/          JSON API (all routes go through apiRoute in src/server/api.ts)
+mcp/                     MCP server for the API
 prisma/                  schema, migrations, seed    scripts/  admin-create + deploy.sh
 ```
 
