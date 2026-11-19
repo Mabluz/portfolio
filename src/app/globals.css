@@ -56,9 +56,15 @@ body {
 .live-dot::after { content: ""; position: absolute; inset: -5px; border-radius: 9999px; border: 2px solid #7fd1a1; animation: pulse-ring 1.6s ease-out infinite; }
 /* Status lamps (StatusLamp.tsx) */
 .lamp { display: inline-block; width: 10px; height: 10px; border-radius: 9999px; border: 1.5px solid #2b2a24; flex-shrink: 0; }
-.lamp-live { background: radial-gradient(circle at 35% 35%, #c8f5d8, #2f8a5b 65%); box-shadow: 0 0 0 3px rgba(47, 138, 91, 0.18), 0 0 10px rgba(47, 138, 91, 0.65); }
-.lamp-wip { background: radial-gradient(circle at 35% 35%, #fff3c8, #e3b744 65%); box-shadow: 0 0 0 3px rgba(227, 183, 68, 0.25), 0 0 10px rgba(227, 183, 68, 0.75); }
-.lamp-giveup { background: radial-gradient(circle at 35% 35%, #ffc9c0, #d0453a 65%); box-shadow: 0 0 0 3px rgba(208, 69, 58, 0.18), 0 0 10px rgba(208, 69, 58, 0.6); }
+/* The lit lamps glow softly in and out; the black one (shut down) stays dark */
+.lamp-live, .lamp-wip, .lamp-giveup { box-shadow: 0 0 0 3px rgba(var(--glow), 0.18), 0 0 10px rgba(var(--glow), 0.65); animation: lamp-glow 2.6s ease-in-out infinite; }
+.lamp-live { --glow: 47, 138, 91; background: radial-gradient(circle at 35% 35%, #c8f5d8, #2f8a5b 65%); }
+.lamp-wip { --glow: 227, 183, 68; background: radial-gradient(circle at 35% 35%, #fff3c8, #e3b744 65%); }
+.lamp-giveup { --glow: 208, 69, 58; background: radial-gradient(circle at 35% 35%, #ffc9c0, #d0453a 65%); }
+@keyframes lamp-glow {
+  0%, 100% { box-shadow: 0 0 0 3px rgba(var(--glow), 0.18), 0 0 10px rgba(var(--glow), 0.65); }
+  50% { box-shadow: 0 0 0 4px rgba(var(--glow), 0.1), 0 0 4px rgba(var(--glow), 0.3); }
+}
 .lamp-closed { background: radial-gradient(circle at 35% 35%, #77736a, #2b2a24 65%); }
 /* Reveal (Parallax.tsx): only set by JS on desktop without reduced motion */
 [data-reveal] { transition: opacity 0.6s ease-out, translate 0.7s cubic-bezier(0.2, 0.7, 0.2, 1); }
@@ -66,5 +72,6 @@ body {
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   .pulse-dot::after, .live-dot::after { animation: none; }
+  .lamp { animation: none !important; }
   * { transition: none !important; }
 }
