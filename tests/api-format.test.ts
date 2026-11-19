@@ -60,7 +60,7 @@ describe("mergeProject", () => {
   });
 
   it("applies the same rules as the admin form", () => {
-    expect(() => merge({ status: "PUBLISHED", no: { title: "" } })).toThrow(/Norsk tittel/);
+    expect(() => merge({ status: "PUBLISHED", no: { title: "" } })).toThrow(/^no\.title: Norsk tittel/);
     expect(() => merge({ liveUrl: "example.com" })).toThrow(/liveUrl/);
     expect(() => merge({ slug: "Ikke Gyldig!" })).toThrow(/slug/);
     expect(() => merge({ no: { title: "x".repeat(121) } })).toThrow(ApiError);

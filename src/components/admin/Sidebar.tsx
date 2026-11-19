@@ -11,6 +11,7 @@ export function Sidebar() {
   const path = usePathname();
   const projects = path === "/admin" || path.startsWith("/admin/prosjekter");
   const about = path.startsWith("/admin/om-meg");
+  const api = path.startsWith("/admin/api");
   const cls = (on: boolean) => `${link} ${on ? "bg-sand text-forest" : "bg-transparent text-sage hover:bg-[#2a5e48] hover:text-sand"}`;
   return (
     <aside className="box-border flex max-w-full flex-[1_1_240px] flex-col gap-8 bg-forest px-[18px] py-7 text-sand">
@@ -29,6 +30,10 @@ export function Sidebar() {
         <Link href="/admin/om-meg" className={cls(about)} aria-current={about ? "page" : undefined}>
           <svg {...icon}><circle cx="12" cy="8" r="4" /><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6" /></svg>
           Forside, om meg og CV
+        </Link>
+        <Link href="/admin/api" className={cls(api)} aria-current={api ? "page" : undefined}>
+          <svg {...icon}><circle cx="8" cy="15" r="4" /><path d="M10.8 12.2L20 3M16 7l3 3M14 9l2 2" /></svg>
+          API-nøkler
         </Link>
       </nav>
       <div className="mt-auto flex flex-col gap-1 border-t border-[#3c6b57] pt-4">

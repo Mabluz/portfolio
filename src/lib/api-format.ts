@@ -143,7 +143,8 @@ export function mergeProject(current: ApiProject, patch: ProjectPatch): { input:
     lessons: patch.lessons ?? current.lessons,
   };
   const parsed = projectSchema.safeParse(raw);
-  if (!parsed.success) throw new ApiError(400, zodMessage(parsed.error));
+  // Report the API's field names ("no.title"), not the internal shape ("translations.no.title")
+  if (!parsed.success) throw new ApiError(400, zodMessage(parsed.error).replace(/^translations\./, ""));
   return { input: parsed.data, techs };
 }
 
