@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { LaptopFrame } from "@/components/ui/LaptopFrame";
+import { Parallax, Reveal } from "./Parallax";
 import { ArrowRight, ArrowUpRight, Github } from "@/components/ui/Icons";
 import { btnGhost, btnPrimary } from "@/components/ui/buttons";
 import type { Dict } from "@/lib/i18n";
@@ -13,9 +14,12 @@ export function BigProjectRow({ t, index, slug, year, title, desc, why, learned,
   return (
     <article className={`flex flex-col items-stretch gap-7 transition-transform duration-300 hover:-translate-y-1 md:items-center md:gap-14 ${index % 2 === 1 ? "md:flex-row-reverse" : "md:flex-row"}`}>
       <div className="relative flex aspect-[16/11] min-w-0 flex-1 items-center justify-center">
-        <LaptopFrame src={image} alt={title} placeholder={t.screenshot} />
+        {/* The screenshot floats a little slower than the text next to it */}
+        <Parallax speed={0.12} max={70} className="flex w-full justify-center" innerClassName="flex w-full justify-center">
+          <LaptopFrame src={image} alt={title} placeholder={t.screenshot} />
+        </Parallax>
       </div>
-      <div className="min-w-0 flex-1">
+      <Reveal className="min-w-0 flex-1">
         <p className="m-0 mb-3.5 font-mono text-[13px] text-forest">{String(index + 1).padStart(2, "0")}{year && ` · ${year}`}</p>
         <h3 className="font-serif m-0 mb-4 text-4xl leading-[1.1] font-medium md:text-[40px]">{title}</h3>
         {desc && <p className="m-0 mb-6 text-lg leading-relaxed text-muted">{desc}</p>}
@@ -35,7 +39,7 @@ export function BigProjectRow({ t, index, slug, year, title, desc, why, learned,
           <Link className={btnGhost} href={`/prosjekter/${slug}`}>{t.readMore}<ArrowRight /></Link>
           {githubUrl && <a className={btnGhost} href={githubUrl} target="_blank" rel="noopener noreferrer"><Github />GitHub</a>}
         </div>
-      </div>
+      </Reveal>
     </article>
   );
 }
