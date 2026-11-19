@@ -2,6 +2,7 @@ import Link from "next/link";
 import { LaptopFrame } from "@/components/ui/LaptopFrame";
 import { ArrowRight } from "@/components/ui/Icons";
 import { StatusBadge } from "./StatusBadge";
+import { StatusLamp } from "./StatusLamp";
 import { heroTexts, type Dict, type Progress } from "@/lib/i18n";
 
 type Props = { t: Dict; slug: string; title: string; text: string; image: string | null; tags: string[]; progress: Progress };
@@ -9,7 +10,6 @@ type Props = { t: Dict; slug: string; title: string; text: string; image: string
 /** The featured project in the hero. Label, badge and link text follow the project's status. */
 export function NowCard({ t, slug, title, text, image, tags, progress }: Props) {
   const { label, badge, cta } = heroTexts(t, progress);
-  const building = progress === "IN_PROGRESS";
   return (
     <Link
       href={`/prosjekter/${slug}`}
@@ -20,7 +20,7 @@ export function NowCard({ t, slug, title, text, image, tags, progress }: Props) 
       </div>
       <div className="px-7 pt-6 pb-7">
         <div className="mb-3 flex items-center gap-2.5">
-          {building ? <span className="pulse-dot" aria-hidden="true" /> : <span aria-hidden="true" className={`h-2.5 w-2.5 shrink-0 rounded-full ${progress === "LIVE" ? "bg-[#2f8a5b]" : "bg-[#8a8370]"}`} />}
+          <StatusLamp progress={progress} />
           <span className="font-mono text-xs font-medium tracking-[0.1em] uppercase">{label}</span>
         </div>
         <p className="font-serif m-0 mb-2 text-4xl leading-[1.1] font-medium">{title}</p>
