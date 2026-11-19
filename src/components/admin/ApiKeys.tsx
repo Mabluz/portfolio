@@ -176,8 +176,8 @@ export function ApiKeys({ baseUrl, myIp, initialKeys, logs }: { baseUrl: string;
 
         <section className={card}>
           <h2 className="m-0 mb-1 text-[17px] font-semibold">Bruk med Claude (MCP)</h2>
-          <p className="mt-0 mb-3 text-sm text-muted-2">Repoet har en MCP-server i <code className="font-mono">mcp/</code>, registrert i <code className="font-mono">.mcp.json</code>. Sett disse i shellet før du starter Claude Code i repoet:</p>
-          <pre className="m-0 overflow-x-auto rounded-[10px] bg-[#efe8da] px-3.5 py-3 font-mono text-[13px]">{`export PORTFOLIO_API_URL="${baseUrl}"\nexport PORTFOLIO_API_KEY="pf_..."`}</pre>
+          <p className="mt-0 mb-3 text-sm text-muted-2">Repoet har en MCP-server i <code className="font-mono">mcp/</code>, registrert i <code className="font-mono">.mcp.json</code>. Legg dette i <code className="font-mono">mcp/.env</code> (committes ikke) og start Claude Code på nytt i repoet:</p>
+          <pre className="m-0 overflow-x-auto rounded-[10px] bg-[#efe8da] px-3.5 py-3 font-mono text-[13px]">{`PORTFOLIO_API_URL="${baseUrl}"\nPORTFOLIO_API_KEY="pf_..."`}</pre>
         </section>
       </div>
     </div>

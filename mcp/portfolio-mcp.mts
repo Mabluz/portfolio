@@ -3,7 +3,8 @@
  * "Om meg" content on the live site (or a local dev server) through the API, with an API key
  * created under "API-nøkler" in the admin.
  *
- * Config (environment):
+ * Config: mcp/.env (gitignored, see mcp/.env.example), or the same variables in the environment,
+ * which take precedence:
  *   PORTFOLIO_API_URL  e.g. https://example.com or http://localhost:3100
  *   PORTFOLIO_API_KEY  pf_... (never commit it)
  *
@@ -11,7 +12,18 @@
  */
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+import { readFileSync } from "node:fs";
+import { parseEnv } from "node:util";
 import { z } from "zod";
+
+// mcp/.env next to this file, so the key can live in the repo without being committed.
+// Variables already set in the environment win.
+try {
+  const file = parseEnv(readFileSync(new URL(".env", import.meta.url), "utf8"));
+  for (const [k, v] of Object.entries(file)) if (!process.env[k] && v) process.env[k] = v;
+} catch {
+  // No mcp/.env: rely on the environment
+}
 
 const BASE = (process.env.PORTFOLIO_API_URL ?? "").replace(/\/+$/, "");
 const KEY = process.env.PORTFOLIO_API_KEY ?? "";
@@ -22,7 +34,7 @@ const ok = (data: unknown): ToolResult => ({ content: [{ type: "text", text: JSO
 const fail = (text: string): ToolResult => ({ content: [{ type: "text", text }], isError: true });
 
 async function api(method: "GET" | "POST" | "PATCH", path: string, body?: unknown): Promise<ToolResult> {
-  if (!BASE || !KEY) return fail("PORTFOLIO_API_URL og PORTFOLIO_API_KEY må være satt i miljøet før Claude Code startes. Lag en nøkkel under «API-nøkler» i admin.");
+  if (!BASE || !KEY) return fail("PORTFOLIO_API_URL og PORTFOLIO_API_KEY mangler. Kopier mcp/.env.example til mcp/.env, fyll inn verdiene og start Claude Code på nytt. Nøkkelen lages under «API-nøkler» i admin.");
   let res: Response;
   try {
     res = await fetch(`${BASE}/api/v1${path}`, {

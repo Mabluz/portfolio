@@ -100,12 +100,7 @@ Create a key under **API-nøkler** in the admin. The key is shown once; only its
 
 Send `Authorization: Bearer pf_...` and JSON bodies. GET returns the same shape PATCH accepts; `no`/`en` merge per field, lists replace. Writes are validated with the same rules as the admin and logged (shown in the admin). There is no delete and no file upload over the API. Limits: 1 MB body, 120 requests per minute per key, 20 failed keys per 15 minutes per IP.
 
-**MCP:** `.mcp.json` registers `mcp/portfolio-mcp.mts` for Claude Code. Set the environment before starting Claude in the repo:
-
-```sh
-export PORTFOLIO_API_URL="https://<your domain>"   # or http://localhost:3100
-export PORTFOLIO_API_KEY="pf_..."                  # never commit it
-```
+**MCP:** `.mcp.json` registers `mcp/portfolio-mcp.mts` for Claude Code. Copy `mcp/.env.example` to `mcp/.env` (gitignored) and fill in `PORTFOLIO_API_URL` (the live site, or `http://localhost:3100`) and `PORTFOLIO_API_KEY`, then restart Claude Code in the repo. Variables set in the environment override the file.
 
 ## Project layout
 
