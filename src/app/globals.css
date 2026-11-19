@@ -57,13 +57,13 @@ body {
 /* Status lamps (StatusLamp.tsx) */
 .lamp { display: inline-block; width: 10px; height: 10px; border-radius: 9999px; border: 1.5px solid #2b2a24; flex-shrink: 0; }
 /* The lit lamps glow softly in and out; the black one (shut down) stays dark */
-.lamp-live, .lamp-wip, .lamp-giveup { box-shadow: 0 0 0 3px rgba(var(--glow), 0.18), 0 0 10px rgba(var(--glow), 0.65); animation: lamp-glow 2.2s ease-in-out infinite; }
+.lamp-live, .lamp-wip, .lamp-giveup { box-shadow: 0 0 0 3px rgba(var(--glow), 0.18), 0 0 10px rgba(var(--glow), 0.65); animation: lamp-glow 3.6s ease-in-out infinite; }
 .lamp-live { --glow: 47, 138, 91; background: radial-gradient(circle at 35% 35%, #c8f5d8, #2f8a5b 65%); }
 .lamp-wip { --glow: 227, 183, 68; background: radial-gradient(circle at 35% 35%, #fff3c8, #e3b744 65%); }
 .lamp-giveup { --glow: 208, 69, 58; background: radial-gradient(circle at 35% 35%, #ffc9c0, #d0453a 65%); }
 @keyframes lamp-glow {
-  0%, 100% { filter: brightness(1.1); box-shadow: 0 0 0 3px rgba(var(--glow), 0.22), 0 0 14px 2px rgba(var(--glow), 0.8); }
-  50% { filter: brightness(0.9); box-shadow: 0 0 0 3px rgba(var(--glow), 0.14), 0 0 7px rgba(var(--glow), 0.45); }
+  0%, 100% { box-shadow: 0 0 0 3px rgba(var(--glow), 0.2), 0 0 12px 1px rgba(var(--glow), 0.75); }
+  50% { box-shadow: 0 0 0 3px rgba(var(--glow), 0.16), 0 0 8px rgba(var(--glow), 0.55); }
 }
 .lamp-closed { background: radial-gradient(circle at 35% 35%, #77736a, #2b2a24 65%); }
 /* Reveal (Parallax.tsx): only set by JS on desktop without reduced motion */
