@@ -1,6 +1,6 @@
 import Image from "next/image";
 import { NowCard } from "@/components/public/NowCard";
-import { Parallax, Reveal } from "@/components/public/Parallax";
+import { Reveal } from "@/components/public/Parallax";
 import { BigProjectRow } from "@/components/public/BigProjectRow";
 import { SmallProjectCard } from "@/components/public/SmallProjectCard";
 import { SectionHeader } from "@/components/ui/SectionHeader";
@@ -42,8 +42,7 @@ export default async function HomePage() {
     <main>
       <section className="mx-auto max-w-[1240px] px-6 pt-10 pb-[72px] md:px-16 md:pt-[88px] md:pb-[120px]">
         <div className="grid items-stretch gap-14 md:grid-cols-[6fr_5fr] md:gap-16">
-          {/* Layers: the text lags behind the scroll, the card moves a little ahead */}
-          <Parallax mode="scroll" speed={0.22} max={160}>
+          <div>
             <p className="m-0 mb-7 font-mono text-sm tracking-[0.02em] text-forest">{t.eyebrow}</p>
             <h1 className="font-serif m-0 max-w-[900px] text-[48px] leading-[1.02] font-medium tracking-[-0.02em] md:text-[68px]">
               {t.heroA}{" "}
@@ -63,9 +62,8 @@ export default async function HomePage() {
               <a className={btnGhost} href="#om">{t.ctaAbout}</a>
               {hasCv && <a className={btnGold} href="/cv"><Download />{t.cv}</a>}
             </div>
-          </Parallax>
+          </div>
           {current && (
-            <Parallax mode="scroll" speed={-0.08} max={70} className="h-full" innerClassName="flex h-full">
             <NowCard
               t={t}
               slug={current.slug}
@@ -75,13 +73,12 @@ export default async function HomePage() {
               image={imageUrl(current.images[0]?.path)}
               tags={text(current).tags}
             />
-            </Parallax>
           )}
         </div>
       </section>
 
       {big.length > 0 && (
-        <section id="store" className="relative mx-auto scroll-mt-16 max-w-[1240px] px-6 pt-10 pb-24 md:px-16 md:pb-[120px]">
+        <section id="store" className="mx-auto scroll-mt-16 max-w-[1240px] px-6 pt-10 pb-24 md:px-16 md:pb-[120px]">
           <Reveal><SectionHeader num="01" title={t.bigTitle} intro={t.bigIntro} /></Reveal>
           <div className="flex flex-col gap-24">
             {big.map((p, i) => {
@@ -99,18 +96,15 @@ export default async function HomePage() {
       )}
 
       {small.length > 0 && (
-        <section id="sma" className="relative bg-forest text-sand">
+        <section id="sma" className="bg-forest text-sand">
           <div className="mx-auto max-w-[1240px] px-6 py-24 md:px-16 md:pt-[110px] md:pb-[120px]">
             <Reveal><SectionHeader num="02" title={t.smallTitle} intro={t.smallIntro} dark /></Reveal>
             <div className="grid gap-6 md:grid-cols-3">
               {small.map((p, i) => {
                 const x = text(p);
-                // Each column moves at its own speed, so the grid gets depth while scrolling
                 return (
-                  <Reveal key={p.id} delay={(i % 3) * 120} className="h-full">
-                    <Parallax speed={[0, 0.05, -0.04][i % 3]} max={40} className="h-full" innerClassName="flex h-full [&>*]:flex-1">
-                      <SmallProjectCard num={i + 1} slug={p.slug} title={x.title} desc={x.tagline} tags={x.tags.slice(0, 2)} />
-                    </Parallax>
+                  <Reveal key={p.id} delay={(i % 3) * 100} className="flex [&>*]:flex-1">
+                    <SmallProjectCard num={i + 1} slug={p.slug} title={x.title} desc={x.tagline} tags={x.tags.slice(0, 2)} />
                   </Reveal>
                 );
               })}
@@ -119,19 +113,14 @@ export default async function HomePage() {
         </section>
       )}
 
-      <section id="om" className="relative mx-auto max-w-[1240px] px-6 py-24 md:px-16 md:py-[120px]">
+      <section id="om" className="mx-auto max-w-[1240px] px-6 py-24 md:px-16 md:py-[120px]">
         <Reveal><SectionHeader num="03" title={t.aboutTitle} /></Reveal>
         <div className="grid items-start gap-10 md:grid-cols-[5fr_7fr] md:gap-[72px]">
-          <Parallax speed={-0.06} max={50} className="relative max-w-[420px]">
+          <div className="relative max-w-[420px]">
             <div className="flex aspect-[4/5] items-center justify-center overflow-hidden rounded-t-[200px] rounded-b-3xl border-[1.5px] border-ink bg-[#dcd2bc]">
-              {/* The photo moves inside its frame; scaled up so its edges never show */}
-              {photo && (
-                <Parallax speed={0.1} scale={1.16} max={38} className="h-full w-full" innerClassName="h-full w-full">
-                  <Image src={photo} alt="Marius" width={840} height={1050} unoptimized className="h-full w-full object-cover" />
-                </Parallax>
-              )}
+              {photo && <Image src={photo} alt="Marius" width={840} height={1050} unoptimized className="h-full w-full object-cover" />}
             </div>
-          </Parallax>
+          </div>
           <Reveal>
             <p className="font-serif m-0 mb-7 text-[32px] leading-[1.3] font-normal">{pick(lang, settings.aboutLeadNo, settings.aboutLeadEn)}</p>
             <p className="m-0 mb-7 text-lg leading-[1.7] whitespace-pre-line text-muted">{pick(lang, settings.aboutBodyNo, settings.aboutBodyEn)}</p>

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { LaptopFrame } from "@/components/ui/LaptopFrame";
-import { Parallax, Reveal } from "./Parallax";
+import { Reveal } from "./Parallax";
 import { ArrowRight, ArrowUpRight, Github } from "@/components/ui/Icons";
 import { btnGhost, btnPrimary } from "@/components/ui/buttons";
 import type { Dict } from "@/lib/i18n";
@@ -14,10 +14,8 @@ export function BigProjectRow({ t, index, slug, year, title, desc, why, learned,
   return (
     <article className={`flex flex-col items-stretch gap-7 transition-transform duration-300 hover:-translate-y-1 md:items-center md:gap-14 ${index % 2 === 1 ? "md:flex-row-reverse" : "md:flex-row"}`}>
       <div className="relative flex aspect-[16/11] min-w-0 flex-1 items-center justify-center">
-        {/* The screenshot floats a little slower than the text next to it */}
-        <Parallax speed={0.12} max={70} className="flex w-full justify-center" innerClassName="flex w-full justify-center">
-          <LaptopFrame src={image} alt={title} placeholder={t.screenshot} />
-        </Parallax>
+        {/* The screenshot drifts slowly inside the laptop screen */}
+        <LaptopFrame src={image} alt={title} placeholder={t.screenshot} parallax />
       </div>
       <Reveal className="min-w-0 flex-1">
         <p className="m-0 mb-3.5 font-mono text-[13px] text-forest">{String(index + 1).padStart(2, "0")}{year && ` · ${year}`}</p>
