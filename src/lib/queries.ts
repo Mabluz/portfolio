@@ -33,7 +33,7 @@ export const projectBySlug = cache((slug: string, includeDrafts: boolean): Promi
 );
 
 // Matches the column defaults in the schema; used until the row has been written once.
-const DEFAULT_SETTINGS: SiteSettings = {
+export const DEFAULT_SETTINGS: SiteSettings = {
   id: 1, currentProjectId: null, nowTextNo: "", nowTextEn: "", aboutLeadNo: "", aboutLeadEn: "",
   aboutBodyNo: "", aboutBodyEn: "", photoPath: null, cvPath: null, cvUpdatedAt: null,
   email: "", githubUrl: "", linkedinUrl: "", tools: [],
