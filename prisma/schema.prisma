@@ -154,3 +154,33 @@ model SiteSettings {
   linkedinUrl      String    @default("")
   tools            String[]
 }
+
+// API keys for /api/v1. Only the sha256 of the key is stored; the key itself is shown once.
+model ApiKey {
+  id         Int           @id @default(autoincrement())
+  name       String
+  prefix     String // first characters of the key, shown in admin
+  hash       String        @unique
+  allowedIps String[] // IP or CIDR; empty = every IP
+  createdAt  DateTime      @default(now())
+  lastUsedAt DateTime?
+  lastUsedIp String?
+  revokedAt  DateTime?
+  logs       ApiAuditLog[]
+}
+
+// One row per API call that changed data.
+model ApiAuditLog {
+  id        Int      @id @default(autoincrement())
+  keyId     Int?
+  key       ApiKey?  @relation(fields: [keyId], references: [id], onDelete: SetNull)
+  keyName   String
+  ip        String
+  method    String
+  path      String
+  summary   String
+  status    Int
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+}
