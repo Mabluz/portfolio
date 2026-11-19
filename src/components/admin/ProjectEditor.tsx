@@ -243,7 +243,7 @@ export function ProjectEditor({ initial, allTechs }: { initial: EditorData; allT
           <AiImport
             techNames={techOptions.map((o) => o.name)}
             imageInput={() => ({
-              type: data.type, no: data.translations.no, en: data.translations.en, liveUrl: data.liveUrl,
+              type: data.type, progress: data.progress, no: data.translations.no, en: data.translations.en, liveUrl: data.liveUrl,
               techs: data.techs.flatMap((r) => techOptions.find((o) => o.id === r.techId)?.name ?? []),
             })}
             onImport={applyImport}
