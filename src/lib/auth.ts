@@ -4,6 +4,7 @@ import { cookies } from "next/headers";
 import { cache } from "react";
 import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
+import { createThrottle } from "@/lib/throttle";
 
 export const SESSION_COOKIE = "session";
 const SESSION_DAYS = 30;
@@ -71,39 +72,16 @@ function warnMissingRealIp() {
   console.warn("[auth] X-Real-IP mangler på innloggingsforespørsel. Sett `proxy_set_header X-Real-IP $remote_addr;` i nginx, ellers er innloggingsgrensen svakere.");
 }
 
-// In-memory login throttle: 5 failed attempts per key per 15 minutes.
-const attempts = new Map<string, { count: number; resetAt: number }>();
-const WINDOW_MS = 15 * 60 * 1000;
-const MAX_ATTEMPTS = 5;
-const PRUNE_AT = 1000;
+// Login throttle: 5 failed attempts per key per 15 minutes.
+const loginThrottle = createThrottle(5, 15 * 60 * 1000);
 
-export function isThrottled(key: string, now = Date.now()) {
-  const entry = attempts.get(key);
-  if (!entry || entry.resetAt < now) return false;
-  return entry.count >= MAX_ATTEMPTS;
-}
+export const isThrottled = loginThrottle.isThrottled;
+export const recordFailure = loginThrottle.hit;
+export const clearFailures = loginThrottle.clear;
 
 /**
  * Checks the limit and counts the attempt in one synchronous step, before any await. Counting only
  * after the slow bcrypt compare would let parallel requests all pass the check while the count is 0.
  * Returns false when the key is throttled. Call clearFailures on a successful login.
  */
-export function reserveAttempt(key: string, now = Date.now()) {
-  if (isThrottled(key, now)) return false;
-  recordFailure(key, now);
-  return true;
-}
-
-export function recordFailure(key: string, now = Date.now()) {
-  // Drop expired entries now and then so the map can't grow without bound.
-  if (attempts.size >= PRUNE_AT) {
-    for (const [k, e] of attempts) if (e.resetAt < now) attempts.delete(k);
-  }
-  const entry = attempts.get(key);
-  if (!entry || entry.resetAt < now) attempts.set(key, { count: 1, resetAt: now + WINDOW_MS });
-  else entry.count += 1;
-}
-
-export function clearFailures(key: string) {
-  attempts.delete(key);
-}
+export const reserveAttempt = loginThrottle.reserve;
