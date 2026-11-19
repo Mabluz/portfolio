@@ -148,11 +148,13 @@ export function mergeProject(current: ApiProject, patch: ProjectPatch): { input:
   return { input: parsed.data, techs };
 }
 
+const READ_ONLY = new Set(["id", "updatedAt", "photoUrl", "cvUrl"]);
+
 /** Which fields a patch touches, e.g. "slug, no.title, techs", for the audit log. */
 export function patchSummary(patch: Record<string, unknown>): string {
   const fields: string[] = [];
   for (const [k, v] of Object.entries(patch)) {
-    if (k === "id" || k === "updatedAt") continue;
+    if (READ_ONLY.has(k)) continue;
     if ((k === "no" || k === "en") && v && typeof v === "object") fields.push(...Object.keys(v).map((f) => `${k}.${f}`));
     else fields.push(k);
   }

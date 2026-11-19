@@ -93,5 +93,6 @@ describe("patchSummary", () => {
   it("lists the touched fields, with no/en expanded", () => {
     expect(patchSummary({ id: 3, no: { title: "x", tagline: "y" }, techs: [] })).toBe("no.title, no.tagline, techs");
     expect(patchSummary({})).toBe("ingen felter");
+    expect(patchSummary({ tools: [], photoUrl: "/uploads/x.webp", cvUrl: "/cv", updatedAt: "x" })).toBe("tools");
   });
 });
